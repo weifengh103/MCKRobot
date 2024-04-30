@@ -148,8 +148,8 @@ def getFKLinkPos():
     
     
     
-    ax.set_xlim([-10, 110])
-    ax.set_ylim([-10, 110])
+    ax.set_xlim([-10, 150])
+    ax.set_ylim([-10, 150])
     ax.plot(xLink1,zLink1)
     ax.plot(xLink2,zLink2)
     ax.plot(xLink3,zLink3)
@@ -168,7 +168,7 @@ def getFKLinkPos():
     # theta4 = math.radians( 0)
     # theta5 = math.radians( 0)
  
-def getIKOneToThreeJointAngles(px,py,pz,upPose):
+def getIKOneToThreeJointAngles(px,py,pz,elbowUp):
     if(px == 0):
         px = 0.00001
     j1, j2, j3,j4,j5,j6 = 0.0,0.0,0.0,0.0,0.0,0.0
@@ -176,15 +176,17 @@ def getIKOneToThreeJointAngles(px,py,pz,upPose):
         
     var1 =(a[1]**2 + a[2]**2 - px**2 - pzLocal**2)/(2*a[1]*a[2])
 
-    j3Abs = - math.acos((a[1]**2 + a[2]**2 - px**2 - pzLocal**2)/(2*a[1]*a[2]))
+    j3Abs =  math.pi - math.acos((a[1]**2 + a[2]**2 - px**2 - pzLocal**2)/(2*a[1]*a[2])) 
+    
+    # j3Abs = j3Abs + math.pi/2
     j3AbsDeg = math.degrees(j3Abs)
-    if(upPose == True):
+    if(elbowUp == True):
         j3 = - j3Abs
-        j2 = math.atan2(pzLocal,px) +  math.atan2(a[2]*math.sin(j3Abs),(a[1] + a[2]*math.cos(j3Abs)))
+        j2 = math.atan(pzLocal/px) +  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[2]*math.cos(j3Abs)))
         
     else:
         j3 = j3Abs
-        j2 = math.atan2(pzLocal,px) -  math.atan2(a[2]*math.sin(j3Abs),(a[1] + a[2]*math.cos(j3Abs)))
+        j2 = math.atan(pzLocal/px) -  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[2]*math.cos(j3Abs)))
         
     
     j3AbsDeg = math.degrees(j3Abs)
@@ -196,11 +198,15 @@ def getIKOneToThreeJointAngles(px,py,pz,upPose):
 
 def main():
     plt.ion()
-
-    while True:
+    x = 85.355
+    z = 85.355
+    for i in range(100):
         global thetas
-        thetas = getIKOneToThreeJointAngles(25,0,75,False)
+        thetas = getIKOneToThreeJointAngles(x,0,z,True)
         getFKLinkPos()
+        # x-=.5
+        z-=0.1
+        
     plt.show()
     sss =1
 
