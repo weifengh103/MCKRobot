@@ -10,10 +10,10 @@ np.set_printoptions(suppress=True,precision=9)
 
 
 fig = plt.figure()
-# ax = fig.add_subplot(111, projection='3d')
+ax = fig.add_subplot(111, projection='3d')
 # ax.view_init(elev=0, azim=0, roll=0)
 
-ax = fig.add_subplot()
+# ax = fig.add_subplot()
 counter = 1
 
 T01 = np.zeros([4,4])
@@ -135,29 +135,28 @@ def getFKLinkPos():
 
      
     ax.cla()
-    # ax.set_xlim([-100, 100])
-    # ax.set_ylim([-100, 100])
-    # ax.set_zlim([-100, 100])
-    # ax.set_xlabel('$X$' )
-    # ax.set_ylabel('$Y$')
-    # ax.set_ylabel('$Z$')
-    # ax.plot(xLink1,yLink1,zLink1)
-    # ax.plot(xLink2,yLink2,zLink2)
-    # ax.plot(xLink3,yLink3,zLink3)
+    
+    ax.set_xlim([-100, 100])
+    ax.set_ylim([-100, 100])
+    ax.set_zlim([-100, 100])
+    ax.set_xlabel('$X$' )
+    ax.set_ylabel('$Y$')
+    ax.set_ylabel('$Z$')
+    ax.plot(xLink1,yLink1,zLink1)
+    ax.plot(xLink2,yLink2,zLink2)
+    ax.plot(xLink3,yLink3,zLink3)
     # ax.plot(xLink4,yLink4,zLink4)
     
     
     
-    ax.set_xlim([-10, 150])
-    ax.set_ylim([-10, 150])
-    ax.plot(xLink1,zLink1)
-    ax.plot(xLink2,zLink2)
-    ax.plot(xLink3,zLink3)
+    # ax.set_xlim([-10, 150])
+    # ax.set_ylim([-10, 150])
+    # ax.plot(xLink1,zLink1)
+    # ax.plot(xLink2,zLink2)
+    # ax.plot(xLink3,zLink3)
 
 
-    # plt.show()
-    # plt.draw()
-    #  ax.fl
+  
     plt.pause(0.00001)
     
 
@@ -167,26 +166,43 @@ def getFKLinkPos():
 
     # theta4 = math.radians( 0)
     # theta5 = math.radians( 0)
- 
+def getRoatedXandTheata1(px,py):
+
+    theta1 = math.atan2(py,px)
+    xAxisAngleDeg = math.degrees(theta1)
+    rotatedX = math.pow((py**2 + px**2),0.5)
+    
+    if(abs(theta1)>math.pi/2):
+        return -rotatedX, theta1
+    else:
+        return rotatedX, theta1
+    sss=1
+    
 def getIKOneToThreeJointAngles(px,py,pz,elbowUp):
-    if(px == 0):
-        px = 0.00001
+ 
     j1, j2, j3,j4,j5,j6 = 0.0,0.0,0.0,0.0,0.0,0.0
+ 
+    pxRotated, j1 = getRoatedXandTheata1(px,py)
+    
+    
+    if(pxRotated == 0):
+        pxRotated = 0.00001
+
     pzLocal = pz - d[0]
         
-    var1 =(a[1]**2 + a[2]**2 - px**2 - pzLocal**2)/(2*a[1]*a[2])
+    var1 =(a[1]**2 + a[2]**2 - pxRotated**2 - pzLocal**2)/(2*a[1]*a[2])
 
-    j3Abs =  math.pi - math.acos((a[1]**2 + a[2]**2 - px**2 - pzLocal**2)/(2*a[1]*a[2])) 
+    j3Abs =  math.pi - math.acos((a[1]**2 + a[2]**2 - pxRotated**2 - pzLocal**2)/(2*a[1]*a[2])) 
     
     # j3Abs = j3Abs + math.pi/2
     j3AbsDeg = math.degrees(j3Abs)
     if(elbowUp == True):
         j3 = - j3Abs
-        j2 = math.atan(pzLocal/px) +  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[2]*math.cos(j3Abs)))
+        j2 = math.atan(pzLocal/pxRotated) +  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[2]*math.cos(j3Abs)))
         
     else:
         j3 = j3Abs
-        j2 = math.atan(pzLocal/px) -  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[2]*math.cos(j3Abs)))
+        j2 = math.atan(pzLocal/pxRotated) -  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[2]*math.cos(j3Abs)))
         
     
     j3AbsDeg = math.degrees(j3Abs)
@@ -197,17 +213,25 @@ def getIKOneToThreeJointAngles(px,py,pz,elbowUp):
     
 
 def main():
-    plt.ion()
-    x = 85.355
+    # plt.ion()
+    # x = 85.355
+    # y = 0
+    # z = 85.355
+    
+    x = 40
+    y = 40
     z = 85.355
-    for i in range(100):
+    # v1,x2 =  getRoatedXandTheata1(-1,1)
+    for i in range(1000):
         global thetas
-        thetas = getIKOneToThreeJointAngles(x,0,z,True)
+        
+        thetas = getIKOneToThreeJointAngles(x,y,z,True)
         getFKLinkPos()
         # x-=.5
-        z-=0.1
+        y-=.5
+        z-=0.5
         
-    plt.show()
+    # plt.show()
     sss =1
 
 if __name__ == '__main__':
