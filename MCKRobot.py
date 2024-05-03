@@ -32,22 +32,38 @@ class MCKRobot:
     pShoulder = np.array([0,0,0,1])
     pElbow = np.array([0,0,0,1])
     pWrist = np.array([0,0,0,1])
+    
+    pWristPos = np.array([0,0,0,0,0,0])
+    pFlangePos = np.array([0,0,0,0,0,0])
+    
     pTCP = np.array([0,0,0,1])
+    
+    pJoints = [pBase,pShoulder,pElbow,pWrist,pTCP]
+    
     # Links
     LinkBaseSholder = [[pBase[0],pBase[1],pBase[2]],[pShoulder[0],pShoulder[1],pShoulder[2]]]
     LinkSholderElbow = [[pShoulder[0],pShoulder[1],pShoulder[2]],[pElbow[0],pElbow[1],pElbow[2]]]
     LinkElbowWrist = [[pElbow[0],pElbow[1],pElbow[2]],[pWrist[0],pWrist[1],pWrist[2]]]
-    
-    _ks = KS
+    _ks = KS("haha")
+
     
     def __init__(self, name):
         self.name = name
-        self._ks.UpdateFK(self.thetas, self.alphas, self.a, self.d, self.pBase,self.pShoulder,self.pElbow,self.pWrist,self.pTCP)
- 
+        # self._ks = KS
         
+    
+    def InitRobot(self):
+        self._ks.UpdateFK(self.thetas, self.alphas, self.a, self.d, self.pJoints)
+
+    
     def move(self,x,y,z):
         self._ks.UpdateIKOneToThreeJoints(x,y,z,True,self.thetas, self.alphas, self.a, self.d)
-        self._ks.UpdateFK(self.thetas, self.alphas, self.a, self.d, self.pBase,self.pShoulder,self.pElbow,self.pWrist,self.pTCP)
+        self._ks.UpdateFK(self.thetas, self.alphas, self.a, self.d, self.pJoints)
+        self.pBase = self.pJoints[0]
+        self.pShoulder =self.pJoints[1]
+        self.pElbow = self.pJoints[2]
+        self.pWrist = self.pJoints[3]
+        self.pTCP = self.pJoints[3]
 
     
 

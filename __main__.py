@@ -8,7 +8,7 @@ from MCKRobot import MCKRobot as rb
 # show decmal in ny matrix
 # np.set_printoptions(precision=4)
 
-_rb = rb("MCKRobot")
+
 
 np.set_printoptions(suppress=True,precision=9)
 
@@ -22,18 +22,10 @@ ax = fig.add_subplot(111, projection='3d')
 # alphas = [math.radians(90),math.radians(0),math.radians(0),math.radians(0),math.radians(90)]
 # d = [50,0,0,0,0]
  
-
+_rb = rb("MCKRobot")
          
 def MCKPlot():
-    global counter
-     
  
-    # pBase = np.array([0,0,0,1])
-    # pShoulder =np.matmul(TBaseJiointTrans[0] , pBase).A1
-    # pElbow = np.matmul(TBaseJiointTrans[1] , pBase).A1
-    # pWrist  = np.matmul(TBaseJiointTrans[2] , pBase).A1
- 
-    _rb.p
     xLink1 = [_rb.pShoulder[0],_rb.pBase[0]]
     yLink1 = [_rb.pShoulder[1],_rb.pBase[1]]
     zLink1 = [_rb.pShoulder[2],_rb.pBase[2]]
@@ -90,12 +82,21 @@ def main():
     x = 40
     y = 40
     z = 85.355
+
+    _rb.InitRobot()
     # v1,x2 =  getRoatedXandTheata1(-1,1)
     for i in range(100):
+        MCKPlot()
         _rb.move(x,y,z)
-        x-=.5
-        y-=.5
+        # x-=.5
+        # y-=.5
         z-=0.5
+    for i in range(100):
+        MCKPlot()
+        _rb.move(x,y,z)
+        # x-=.5
+        # y-=.5
+        z+=0.5
         
     # plt.show()
     sss =1
