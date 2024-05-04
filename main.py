@@ -22,7 +22,7 @@ ax = fig.add_subplot(111, projection='3d')
 # alphas = [math.radians(90),math.radians(0),math.radians(0),math.radians(0),math.radians(90)]
 # d = [50,0,0,0,0]
  
-_rb = rb("MCKRobot")
+_rb = rb()
          
 def MCKPlot():
  
@@ -35,9 +35,13 @@ def MCKPlot():
     zLink2 = [_rb.pElbow[2],_rb.pShoulder[2]]
 
 
-    xLink3 = [_rb.pWrist[0],_rb.pElbow[0]]
-    yLink3 = [_rb.pWrist[1],_rb.pElbow[1]]
-    zLink3 = [_rb.pWrist[2],_rb.pElbow[2]]
+    xLink3 = [_rb.pWristPos[0],_rb.pElbow[0]]
+    yLink3 = [_rb.pWristPos[1],_rb.pElbow[1]]
+    zLink3 = [_rb.pWristPos[2],_rb.pElbow[2]]
+    
+    xLink4 = [_rb.pTCPPos[0],_rb.pWristPos[0]]
+    yLink4 = [_rb.pTCPPos[1],_rb.pWristPos[1]]
+    zLink4= [_rb.pTCPPos[2],_rb.pWristPos[2]]
 
      
     ax.cla()
@@ -51,6 +55,7 @@ def MCKPlot():
     ax.plot(xLink1,yLink1,zLink1)
     ax.plot(xLink2,yLink2,zLink2)
     ax.plot(xLink3,yLink3,zLink3)
+    ax.plot(xLink4,yLink4,zLink4)
     # ax.plot(xLink4,yLink4,zLink4)
     
     
@@ -80,7 +85,7 @@ def main():
     # z = 85.355
     
     x = 40
-    y = 40
+    y = 0
     z = 85.355
 
     _rb.InitRobot()

@@ -9,8 +9,8 @@ class KinematicSolver:
     _TJointJiointTrans = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     _TBaseJiointTrans = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
  
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
+        pass
      
     # FK Section
     
@@ -25,31 +25,64 @@ class KinematicSolver:
         return tempMat
 
     def updateAllTJointJointTrans(self,thetas,alphas,a,d):
-        for i in range(5):
+        # Update first four joint to joint transition matrix based on DH Matrix
+        
+        for i in range(3):
+            # When i = 0, first matrix is from base to joint 2 (Shoulder)
             self._TJointJiointTrans[i]=self.getDHTransMatrix(i,thetas,alphas,a,d)
+            
+        # Treat joint 4 as a sphere joint with  3 rotational degree. Calculate base on rotation sequence x'→y'→z' 
+        # Reference: https://www.mecademic.com/academic_articles/space-orientation-euler-angles/
+        
+        # assign  rx ry rz based on coordination on joint 4
+        rx = thetas[5]
+        ry = thetas[4] 
+        rz = thetas[3]
+        
+        # Construct trans matrix from joint 4 to TCP tip
+        Rx = np.matrix([[1, 0, 0], [0, np.cos(rx), -np.sin(rx)], [0, np.sin(rx), np.cos(rx)]])
+        Ry = np.matrix([[np.cos(ry), 0, np.sin(ry)], [0, 1, 0], [-np.sin(ry), 0, np.cos(ry)]])
+        Rz = np.matrix([[np.cos(rz), -np.sin(rz), 0], [np.sin(rz), np.cos(rz), 0], [0, 0, 1]])
+        
+        
+        Rxyz = np.matmul(np.matmul(Rx,Ry),Rz)
+        
+        #TODO: Set fixed TCP for now
+        pTCP = np.matrix([0,30,0])     
+        Txyz =np.zeros((4, 4))
+        Txyz[:3, :3] = Rxyz
+        Txyz[:3, 3] = pTCP
+        Txyz[3, 3] = 1      
+        self._TJointJiointTrans[3] =  np.matrix(Txyz)
+        pass
+        
+     
     
     def updateAllTBaseJointTrans(self):
-        for i in range(5):
+         # Update first four base to joint transition matrix based on DH Matrix
+        for i in range(4):
             if i == 0:
                 self._TBaseJiointTrans[i] = self._TJointJiointTrans[i]
             else:
                 temp =np.dot(self._TBaseJiointTrans[i-1] , self._TJointJiointTrans[i])
                 self._TBaseJiointTrans[i] = np.matmul(self._TBaseJiointTrans[i-1] , self._TJointJiointTrans[i])
+        pass
                 
     def UpdateFK(self,thetas,alphas,a,d,pJoints):
  
         self.updateAllTJointJointTrans(thetas,alphas,a,d)
         self.updateAllTBaseJointTrans()
         
-     
-        pJoints[1] =np.matmul(self._TBaseJiointTrans[0] , pJoints[0]).A1
+
+        pJoints[1] = np.matmul(self._TBaseJiointTrans[0] , pJoints[0]).A1
         pJoints[2] = np.matmul(self._TBaseJiointTrans[1] , pJoints[0]).A1
-        pJoints[3]  = np.matmul(self._TBaseJiointTrans[2] , pJoints[0]).A1
-
-
+        pJoints[3] = np.matmul(self._TBaseJiointTrans[2] , pJoints[0]).A1
+        
+   
 
         #TODO Temperately PTCP = Pwirst
-        pJoints[4]= pJoints[3]
+        pJoints[4]=np.matmul(self._TBaseJiointTrans[3] , pJoints[0]).A1
+        pass
         
         
         # # xLink1 = [pShoulder[0],pBase[0]]
