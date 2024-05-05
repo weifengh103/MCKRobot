@@ -6,8 +6,8 @@ import math
 
 class KinematicSolver:
     
-    _TJointJiointTrans = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
-    _TBaseJiointTrans = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
+    _TJointJiointTrans = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
+    _TBaseJiointTrans = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
  
     def __init__(self):
         pass
@@ -27,40 +27,46 @@ class KinematicSolver:
     def updateAllTJointJointTrans(self,thetas,alphas,a,d):
         # Update first four joint to joint transition matrix based on DH Matrix
         
-        for i in range(3):
+        for i in range(6):
             # When i = 0, first matrix is from base to joint 2 (Shoulder)
             self._TJointJiointTrans[i]=self.getDHTransMatrix(i,thetas,alphas,a,d)
             
-        # Treat joint 4 as a sphere joint with  3 rotational degree. Calculate base on rotation sequence x'→y'→z' 
-        # Reference: https://www.mecademic.com/academic_articles/space-orientation-euler-angles/
+        # # Treat joint 4 as a sphere joint with  3 rotational degree. Calculate base on rotation sequence x'→y'→z' 
+        # # Reference: https://www.mecademic.com/academic_articles/space-orientation-euler-angles/
         
-        # assign  rx ry rz based on coordination on joint 4
-        rx = thetas[5]
-        ry = thetas[4] 
-        rz = thetas[3]
+        # # assign  rx ry rz based on coordination on joint 4
+        # # rx = thetas[5]
+        # # ry = thetas[4] 
+        # # rz = thetas[3]
+        # rx = math.radians(0)
+        # ry = math.radians(0)
+        # rz = math.radians(45)
+        # # Construct trans matrix from joint 4 to TCP tip
+        # Rx = np.matrix([[1, 0, 0], [0, np.cos(rx), -np.sin(rx)], [0, np.sin(rx), np.cos(rx)]])
+        # Ry = np.matrix([[np.cos(ry), 0, np.sin(ry)], [0, 1, 0], [-np.sin(ry), 0, np.cos(ry)]])
+        # Rz = np.matrix([[np.cos(rz), -np.sin(rz), 0], [np.sin(rz), np.cos(rz), 0], [0, 0, 1]])
         
-        # Construct trans matrix from joint 4 to TCP tip
-        Rx = np.matrix([[1, 0, 0], [0, np.cos(rx), -np.sin(rx)], [0, np.sin(rx), np.cos(rx)]])
-        Ry = np.matrix([[np.cos(ry), 0, np.sin(ry)], [0, 1, 0], [-np.sin(ry), 0, np.cos(ry)]])
-        Rz = np.matrix([[np.cos(rz), -np.sin(rz), 0], [np.sin(rz), np.cos(rz), 0], [0, 0, 1]])
         
+        # Rxyz = np.matmul(np.matmul(Rx,Ry),Rz)
         
-        Rxyz = np.matmul(np.matmul(Rx,Ry),Rz)
+        # #TODO: Set fixed TCP for now
+        # pTCP = [0,1,0]
+        # Txyz =np.zeros((4, 4))
+        # # pTCPRotated = np.dot(Rxyz,pTCP)
+        # Txyz[:3, :3] = Rxyz
+        # Txyz[:3, 3] = pTCP
+        # Txyz[3, 3] = 1      
+        # self._TJointJiointTrans[3] =  np.matrix(Txyz)
         
-        #TODO: Set fixed TCP for now
-        pTCP = np.matrix([0,30,0])     
-        Txyz =np.zeros((4, 4))
-        Txyz[:3, :3] = Rxyz
-        Txyz[:3, 3] = pTCP
-        Txyz[3, 3] = 1      
-        self._TJointJiointTrans[3] =  np.matrix(Txyz)
+        # pTCP2 = [30,0,0,0]
+        # pTCPRotated = np.dot(self._TJointJiointTrans[3],pTCP2) 
         pass
         
      
     
     def updateAllTBaseJointTrans(self):
          # Update first four base to joint transition matrix based on DH Matrix
-        for i in range(4):
+        for i in range(6):
             if i == 0:
                 self._TBaseJiointTrans[i] = self._TJointJiointTrans[i]
             else:
@@ -77,11 +83,12 @@ class KinematicSolver:
         pJoints[1] = np.matmul(self._TBaseJiointTrans[0] , pJoints[0]).A1
         pJoints[2] = np.matmul(self._TBaseJiointTrans[1] , pJoints[0]).A1
         pJoints[3] = np.matmul(self._TBaseJiointTrans[2] , pJoints[0]).A1
-        
-   
+        pJoints[4]=np.matmul(self._TBaseJiointTrans[3] , pJoints[0]).A1
+        pJoints[5]=np.matmul(self._TBaseJiointTrans[4] , pJoints[0]).A1
+        pJoints[6]=np.matmul(self._TBaseJiointTrans[5] , pJoints[0]).A1
 
         #TODO Temperately PTCP = Pwirst
-        pJoints[4]=np.matmul(self._TBaseJiointTrans[3] , pJoints[0]).A1
+        # pJoints[4]=np.matmul(self._TBaseJiointTrans[3] , pJoints[0]).A1
         pass
         
         
@@ -134,17 +141,17 @@ class KinematicSolver:
             
         # pzLocal=0
 
-        j3Abs =  math.pi - math.acos((a[1]**2 + a[2]**2 - pxRotated**2 - pzLocal**2)/(2*a[1]*a[2])) 
+        j3Abs =  math.pi - math.acos((a[1]**2 + a[3]**2 - pxRotated**2 - pzLocal**2)/(2*a[1]*a[3])) 
         
         # j3Abs = j3Abs + math.pi/2
         j3AbsDeg = math.degrees(j3Abs)
         if(elbowUp == True):
             thetas[2] = - j3Abs
-            thetas[1] = math.atan(pzLocal/pxRotated) +  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[2]*math.cos(j3Abs)))
+            thetas[1] = math.atan(pzLocal/pxRotated) +  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[3]*math.cos(j3Abs)))
             
         else:
             thetas[2] = j3Abs
-            thetas[1] = math.atan(pzLocal/pxRotated) -  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[2]*math.cos(j3Abs)))
+            thetas[1] = math.atan(pzLocal/pxRotated) -  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[3]*math.cos(j3Abs)))
             
         
         j3AbsDeg = math.degrees(j3Abs)
