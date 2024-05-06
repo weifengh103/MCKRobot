@@ -18,22 +18,28 @@ class MCKRobot:
     # a = [0,50,50,0,0]
     
     # new order
-    a = [0,50,0,0,30]
+    # a = [0,50,0,0,30]
+    # new order2
+    a = [0,50,0,0,0,0]
     
     
     #Zn-1 to Zn along Xn
     # alphas = [math.radians(90),math.radians(0),math.radians(0),
     #           math.radians(0),math.radians(90),math.radians(0)]
      # new order
+    # alphas = [math.radians(90),math.radians(0),math.radians(90),
+    #           math.radians(90),math.radians(90),math.radians(-90)]
+    # new order2
     alphas = [math.radians(90),math.radians(0),math.radians(90),
-              math.radians(90),math.radians(90),math.radians(-90)]
+              math.radians(90),math.radians(90),math.radians(0)]
+    
     
     # d is the distance from Xn-1 to Xn along the Zn-1 direction.
     # d = [50,0,0,0,0,30]
     # d = [50,0,0,0]
     # d = [50,0,0,0,0]
     # d = [50,0,0,0,30]
-    d = [50,0,0,50,0]
+    d = [50,0,0,50,0,30]
     
     # Joint angles and positions
     J1,J2,J3,J4,J5,J6 = 0.0,0.0,0.0,0.0,0.0,0.0
@@ -45,8 +51,8 @@ class MCKRobot:
     theta2 = math.radians(45)
     theta3 = math.radians(45)
     
-    theta4 = math.radians(0+180)
-    theta5 = math.radians(45)
+    theta4 = math.radians(45)
+    theta5 = math.radians(-90)
     theta6 = math.radians(0)
     thetas = [theta1,theta2,theta3,theta4,theta5,theta6]
     
