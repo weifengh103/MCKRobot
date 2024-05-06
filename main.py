@@ -50,6 +50,18 @@ def MCKPlot():
     yLink6 = [_rb.pTCPPos[1],_rb.pFlange[1]]
     zLink6 = [_rb.pTCPPos[2],_rb.pFlange[2]]
 
+# plot TCP
+    xTCPX = [_rb.pDispTCPOrig[0],_rb.pDispTCPX[0]]
+    yTCPX = [_rb.pDispTCPOrig[2],_rb.pDispTCPX[2]]
+    zTCPX = [_rb.pDispTCPOrig[1],_rb.pDispTCPX[1]]
+    
+    xTCPY = [_rb.pDispTCPOrig[0],_rb.pDispTCPY[0]]
+    yTCPY = [_rb.pDispTCPOrig[1],_rb.pDispTCPY[1]]
+    zTCPY = [_rb.pDispTCPOrig[2],_rb.pDispTCPY[2]]
+    
+    xTCPZ = [_rb.pDispTCPOrig[0],_rb.pDispTCPZ[0]]
+    yTCPZ = [_rb.pDispTCPOrig[1],_rb.pDispTCPZ[1]]
+    zTCPZ = [_rb.pDispTCPOrig[2],_rb.pDispTCPZ[2]]
      
     ax.cla()
     
@@ -66,6 +78,9 @@ def MCKPlot():
     ax.plot(xLink5,yLink5,zLink5)
     ax.plot(xLink6,yLink6,zLink6)
     
+    ax.plot(xTCPX,yTCPX,zTCPX)
+    ax.plot(xTCPY,yTCPY,zTCPY)
+    ax.plot(xTCPZ,yTCPZ,zTCPZ)
     
     # ax.set_xlim([-10, 150])
     # ax.set_ylim([-10, 150])

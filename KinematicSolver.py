@@ -74,7 +74,7 @@ class KinematicSolver:
                 self._TBaseJiointTrans[i] = np.matmul(self._TBaseJiointTrans[i-1] , self._TJointJiointTrans[i])
         pass
                 
-    def UpdateFK(self,thetas,alphas,a,d,pJoints):
+    def UpdateFK(self,thetas,alphas,a,d,pJoints,pDispTCP):
  
         self.updateAllTJointJointTrans(thetas,alphas,a,d)
         self.updateAllTBaseJointTrans()
@@ -87,6 +87,15 @@ class KinematicSolver:
         pJoints[5]=np.matmul(self._TBaseJiointTrans[4] , pJoints[0]).A1
         pJoints[6]=np.matmul(self._TBaseJiointTrans[5] , pJoints[0]).A1
 
+
+         
+        pDispTCP[0] = np.matmul(self._TBaseJiointTrans[5] , [0,0,0,1]).A1
+        pDispTCP[1] = np.matmul(self._TBaseJiointTrans[5] , [5,0,0,1]).A1
+        pDispTCP[2] = np.matmul(self._TBaseJiointTrans[5] , [0,5,0,1]).A1
+        pDispTCP[3] = np.matmul(self._TBaseJiointTrans[5] , [0,0,5,1]).A1
+            
+            
+            
         #TODO Temperately PTCP = Pwirst
         # pJoints[4]=np.matmul(self._TBaseJiointTrans[3] , pJoints[0]).A1
         pass
