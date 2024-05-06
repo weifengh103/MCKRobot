@@ -88,11 +88,11 @@ class KinematicSolver:
         pJoints[6]=np.matmul(self._TBaseJiointTrans[5] , pJoints[0]).A1
 
 
-         
+        dispTCPAxisLength = 10
         pDispTCP[0] = np.matmul(self._TBaseJiointTrans[5] , [0,0,0,1]).A1
-        pDispTCP[1] = np.matmul(self._TBaseJiointTrans[5] , [5,0,0,1]).A1
-        pDispTCP[2] = np.matmul(self._TBaseJiointTrans[5] , [0,5,0,1]).A1
-        pDispTCP[3] = np.matmul(self._TBaseJiointTrans[5] , [0,0,5,1]).A1
+        pDispTCP[1] = np.matmul(self._TBaseJiointTrans[5] , [dispTCPAxisLength,0,0,1]).A1
+        pDispTCP[2] = np.matmul(self._TBaseJiointTrans[5] , [0,dispTCPAxisLength,0,1]).A1
+        pDispTCP[3] = np.matmul(self._TBaseJiointTrans[5] , [0,0,dispTCPAxisLength,1]).A1
             
             
             

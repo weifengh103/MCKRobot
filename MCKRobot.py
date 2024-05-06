@@ -109,8 +109,8 @@ class MCKRobot:
         
         self.pDispTCPOrig= self.pDispTCP[0]
         self.pDispTCPX= self.pDispTCP[1]
-        self.pDispTCyX= self.pDispTCP[2]
-        self.pDispTCPz= self.pDispTCP[3]
+        self.pDispTCPY= self.pDispTCP[2]
+        self.pDispTCPZ= self.pDispTCP[3]
         # self.pTCP = self.pJoints[4]
 
     

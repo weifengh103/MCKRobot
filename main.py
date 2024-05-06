@@ -52,8 +52,8 @@ def MCKPlot():
 
 # plot TCP
     xTCPX = [_rb.pDispTCPOrig[0],_rb.pDispTCPX[0]]
-    yTCPX = [_rb.pDispTCPOrig[2],_rb.pDispTCPX[2]]
-    zTCPX = [_rb.pDispTCPOrig[1],_rb.pDispTCPX[1]]
+    yTCPX = [_rb.pDispTCPOrig[1],_rb.pDispTCPX[1]]
+    zTCPX = [_rb.pDispTCPOrig[2],_rb.pDispTCPX[2]]
     
     xTCPY = [_rb.pDispTCPOrig[0],_rb.pDispTCPY[0]]
     yTCPY = [_rb.pDispTCPOrig[1],_rb.pDispTCPY[1]]
@@ -64,23 +64,26 @@ def MCKPlot():
     zTCPZ = [_rb.pDispTCPOrig[2],_rb.pDispTCPZ[2]]
      
     ax.cla()
+    scale = 80
     
-    ax.set_xlim([-100, 100])
-    ax.set_ylim([-100, 100])
-    ax.set_zlim([-100, 100])
+    axisOffset = 50
+ 
+    ax.set_xlim([-scale+axisOffset, scale+axisOffset])
+    ax.set_ylim([-scale, scale])
+    ax.set_zlim([-scale + axisOffset, scale+axisOffset])
     ax.set_xlabel('$X$' )
     ax.set_ylabel('$Y$')
-    ax.set_ylabel('$Z$')
-    ax.plot(xLink1,yLink1,zLink1)
-    ax.plot(xLink2,yLink2,zLink2)
-    ax.plot(xLink3,yLink3,zLink3)
-    ax.plot(xLink4,yLink4,zLink4)
-    ax.plot(xLink5,yLink5,zLink5)
-    ax.plot(xLink6,yLink6,zLink6)
+    ax.set_zlabel('$Z$')
+    ax.plot(xLink1,yLink1,zLink1,color="black",linewidth = '3')
+    ax.plot(xLink2,yLink2,zLink2,color="black",linewidth = '3')
+    ax.plot(xLink3,yLink3,zLink3,color="black",linewidth = '3')
+    ax.plot(xLink4,yLink4,zLink4,color="black",linewidth = '3')
+    ax.plot(xLink5,yLink5,zLink5,color="black",linewidth = '3')
+    ax.plot(xLink6,yLink6,zLink6,color="black",linewidth = '3')
     
-    ax.plot(xTCPX,yTCPX,zTCPX)
-    ax.plot(xTCPY,yTCPY,zTCPY)
-    ax.plot(xTCPZ,yTCPZ,zTCPZ)
+    ax.plot(xTCPX,yTCPX,zTCPX,color="red",linewidth = '3')
+    ax.plot(xTCPY,yTCPY,zTCPY,color="green",linewidth = '3')
+    ax.plot(xTCPZ,yTCPZ,zTCPZ,color="blue",linewidth = '3')
     
     # ax.set_xlim([-10, 150])
     # ax.set_ylim([-10, 150])
