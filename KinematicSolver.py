@@ -27,7 +27,7 @@ class KinematicSolver:
     def updateAllTJointJointTrans(self,thetas,alphas,a,d):
         # Update first four joint to joint transition matrix based on DH Matrix
         
-        for i in range(6):
+        for i in range(5):
             # When i = 0, first matrix is from base to joint 2 (Shoulder)
             self._TJointJiointTrans[i]=self.getDHTransMatrix(i,thetas,alphas,a,d)
             
@@ -66,7 +66,7 @@ class KinematicSolver:
     
     def updateAllTBaseJointTrans(self):
          # Update first four base to joint transition matrix based on DH Matrix
-        for i in range(6):
+        for i in range(5):
             if i == 0:
                 self._TBaseJiointTrans[i] = self._TJointJiointTrans[i]
             else:
@@ -85,7 +85,7 @@ class KinematicSolver:
         pJoints[3] = np.matmul(self._TBaseJiointTrans[2] , pJoints[0]).A1
         pJoints[4]=np.matmul(self._TBaseJiointTrans[3] , pJoints[0]).A1
         pJoints[5]=np.matmul(self._TBaseJiointTrans[4] , pJoints[0]).A1
-        pJoints[6]=np.matmul(self._TBaseJiointTrans[5] , pJoints[0]).A1
+        # pJoints[6]=np.matmul(self._TBaseJiointTrans[5] , pJoints[0]).A1
 
         #TODO Temperately PTCP = Pwirst
         # pJoints[4]=np.matmul(self._TBaseJiointTrans[3] , pJoints[0]).A1

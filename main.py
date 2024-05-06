@@ -46,9 +46,9 @@ def MCKPlot():
     yLink5 = [_rb.pFlange[1],_rb.pWristPos[1]]
     zLink5 = [_rb.pFlange[2],_rb.pWristPos[2]]
     
-    xLink6 = [_rb.pTCPPos[0],_rb.pFlange[0]]
-    yLink6 = [_rb.pTCPPos[1],_rb.pFlange[1]]
-    zLink6 = [_rb.pTCPPos[2],_rb.pFlange[2]]
+    # xLink6 = [_rb.pTCPPos[0],_rb.pFlange[0]]
+    # yLink6 = [_rb.pTCPPos[1],_rb.pFlange[1]]
+    # zLink6 = [_rb.pTCPPos[2],_rb.pFlange[2]]
 
      
     ax.cla()
@@ -64,7 +64,7 @@ def MCKPlot():
     ax.plot(xLink3,yLink3,zLink3)
     ax.plot(xLink4,yLink4,zLink4)
     ax.plot(xLink5,yLink5,zLink5)
-    ax.plot(xLink6,yLink6,zLink6)
+    # ax.plot(xLink6,yLink6,zLink6)
     
     
     # ax.set_xlim([-10, 150])
