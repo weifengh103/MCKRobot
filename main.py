@@ -104,10 +104,7 @@ def MCKPlot():
     # theta5 = math.radians( 0)
  
 def main():
-    # plt.ion()
-    # x = 85.355
-    # y = 0
-    # z = 85.355
+ 
     
     x = 40
     y = 0
@@ -115,26 +112,40 @@ def main():
 
     _rb.InitRobot()
     
-    # v1,x2 =  getRoatedXandTheata1(-1,1)
+ 
     while True:
-        for i in range(100):
-            MCKPlot()
-            # _rb.move(x,y,z)
-            # x-=.5
-            # y-=.5
-            z-=1
-        for i in range(100):
-            MCKPlot()
-            # _rb.move(x,y,z)
-            # x-=.5
-            # y-=.5
-            # z+=1
+        i = 0
+        j = 0
+ 
+        for i in range(6):
+            j = 0
+            for j in range(10):
+                _rb.JogJoint(i,2)
+                MCKPlot()
+            j = 0
+            for j in range(10):
+                _rb.JogJoint(i,-2) 
+                MCKPlot()
+            # j = 0
+            # for j in range(10):
+            #     _rb.JogJoint(i,2)
+            #     MCKPlot()
+        # for i in range(100):
+        #     MCKPlot()
+        #     # _rb.move(x,y,z)
+        #     # x-=.5
+        #     # y-=.5
+        #     z-=1
+        # for i in range(100):
+        #     MCKPlot()
+        #     # _rb.move(x,y,z)
+        #     # x-=.5
+        #     # y-=.5
+        #     # z+=1
         
     # plt.show()
     sss =1
 
 if __name__ == '__main__':
     main()
-# EOA link absolut angle
-
-# theta2 solution
+ 

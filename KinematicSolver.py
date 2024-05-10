@@ -3,6 +3,7 @@ import time
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import math
+from scipy.spatial.transform import Rotation   
 
 class KinematicSolver:
     
@@ -88,12 +89,13 @@ class KinematicSolver:
         pJoints[6]=np.matmul(self._TBaseJiointTrans[5] , pJoints[0]).A1
 
 
-        dispTCPAxisLength = 10
+        dispTCPAxisLength = 20
         pDispTCP[0] = np.matmul(self._TBaseJiointTrans[5] , [0,0,0,1]).A1
         pDispTCP[1] = np.matmul(self._TBaseJiointTrans[5] , [dispTCPAxisLength,0,0,1]).A1
         pDispTCP[2] = np.matmul(self._TBaseJiointTrans[5] , [0,dispTCPAxisLength,0,1]).A1
         pDispTCP[3] = np.matmul(self._TBaseJiointTrans[5] , [0,0,dispTCPAxisLength,1]).A1
-            
+        
+        
             
             
         #TODO Temperately PTCP = Pwirst
@@ -116,8 +118,18 @@ class KinematicSolver:
 
  
 
-    
- 
+    def updateEulerAngles(self):
+   
+        rmTCP =  self._TBaseJiointTrans[5] [:3, :3]
+        r =  Rotation.from_matrix(rmTCP)
+        angles = r.as_euler("xyz",degrees=True)
+
+        #### Modify the angles
+        print(angles)
+       
+   
+                
+        
  
     # IK Section
     def getRoatedXandTheata1(self,px,py):
@@ -161,10 +173,6 @@ class KinematicSolver:
         else:
             thetas[2] = j3Abs
             thetas[1] = math.atan(pzLocal/pxRotated) -  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[3]*math.cos(j3Abs)))
-            
-        
-        j3AbsDeg = math.degrees(j3Abs)
-        j2AbsDeg = math.degrees(j2)
         
         return [j1, j2, j3,j4,j5,j6]
     
