@@ -16,10 +16,13 @@ class MCKRobot:
               math.radians(90),math.radians(90),math.radians(0)]
     
     # d is the distance from Xn-1 to Xn along the Zn-1 direction.
-    d = [50,0,0,50,0,0]
+    d = [50,0,0,50,0,30]
     
     # Joint angles and positions
     J1,J2,J3,J4,J5,J6 = 0.0,0.0,0.0,0.0,0.0,0.0
+    
+    tmJointJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
+    tmBaseJioint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     
     
     Joints = [J1,J2,J3,J4,J5,J6]
@@ -57,20 +60,20 @@ class MCKRobot:
         
     
     def InitRobot(self):
-        self._ks.UpdateFK(self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
-        self._ks.updateEulerAngles()
+        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
+        self._ks.updateEulerAngles(self.tmBaseJioint)
         self.mapJointsToRobotp()
          
     
     def move(self,x,y,z):
         pass
         self._ks.UpdateIKOneToThreeJoints(x,y,z,True,self.thetas, self.alphas, self.a, self.d)
-        self._ks.UpdateFK(self.thetas, self.alphas, self.a, self.d, self.pJoints,self.pDispTCP)
+        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
         self.mapJointsToRobotp()
         
     def JogJoint(self, index, step):
         self.thetas[index] = self.thetas[index] + math.radians(step)
-        self._ks.UpdateFK(self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
+        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
         self.mapJointsToRobotp()
 
     def mapJointsToRobotp(self):

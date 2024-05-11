@@ -111,21 +111,21 @@ def main():
     z = 85.355
 
     _rb.InitRobot()
-    
+    MCKPlot()
  
     while True:
         i = 0
         j = 0
  
-        for i in range(6):
-            j = 0
-            for j in range(10):
-                _rb.JogJoint(i,2)
-                MCKPlot()
-            j = 0
-            for j in range(10):
-                _rb.JogJoint(i,-2) 
-                MCKPlot()
+        # for i in range(6):
+        #     j = 0
+        #     for j in range(10):
+        #         _rb.JogJoint(i,2)
+        #         MCKPlot()
+        #     j = 0
+        #     for j in range(10):
+        #         _rb.JogJoint(i,-2) 
+        #         MCKPlot()
             # j = 0
             # for j in range(10):
             #     _rb.JogJoint(i,2)

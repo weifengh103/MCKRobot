@@ -7,8 +7,7 @@ from scipy.spatial.transform import Rotation
 
 class KinematicSolver:
     
-    _TJointJiointTrans = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
-    _TBaseJiointTrans = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
+
  
     def __init__(self):
         pass
@@ -25,81 +24,47 @@ class KinematicSolver:
         
         return tempMat
 
-    def updateAllTJointJointTrans(self,thetas,alphas,a,d):
+    def updateAllTJointJointTrans(self,tmJointJoint,thetas,alphas,a,d):
         # Update first four joint to joint transition matrix based on DH Matrix
         
+        # Note: When i = 0, first matrix is from base to joint 2 (Shoulder)
         for i in range(6):
-            # When i = 0, first matrix is from base to joint 2 (Shoulder)
-            self._TJointJiointTrans[i]=self.getDHTransMatrix(i,thetas,alphas,a,d)
-            
-        # # Treat joint 4 as a sphere joint with  3 rotational degree. Calculate base on rotation sequence x'→y'→z' 
-        # # Reference: https://www.mecademic.com/academic_articles/space-orientation-euler-angles/
-        
-        # # assign  rx ry rz based on coordination on joint 4
-        # # rx = thetas[5]
-        # # ry = thetas[4] 
-        # # rz = thetas[3]
-        # rx = math.radians(0)
-        # ry = math.radians(0)
-        # rz = math.radians(45)
-        # # Construct trans matrix from joint 4 to TCP tip
-        # Rx = np.matrix([[1, 0, 0], [0, np.cos(rx), -np.sin(rx)], [0, np.sin(rx), np.cos(rx)]])
-        # Ry = np.matrix([[np.cos(ry), 0, np.sin(ry)], [0, 1, 0], [-np.sin(ry), 0, np.cos(ry)]])
-        # Rz = np.matrix([[np.cos(rz), -np.sin(rz), 0], [np.sin(rz), np.cos(rz), 0], [0, 0, 1]])
-        
-        
-        # Rxyz = np.matmul(np.matmul(Rx,Ry),Rz)
-        
-        # #TODO: Set fixed TCP for now
-        # pTCP = [0,1,0]
-        # Txyz =np.zeros((4, 4))
-        # # pTCPRotated = np.dot(Rxyz,pTCP)
-        # Txyz[:3, :3] = Rxyz
-        # Txyz[:3, 3] = pTCP
-        # Txyz[3, 3] = 1      
-        # self._TJointJiointTrans[3] =  np.matrix(Txyz)
-        
-        # pTCP2 = [30,0,0,0]
-        # pTCPRotated = np.dot(self._TJointJiointTrans[3],pTCP2) 
-        pass
-        
-     
+            tmJointJoint[i]=self.getDHTransMatrix(i,thetas,alphas,a,d)
     
-    def updateAllTBaseJointTrans(self):
+    def updateAllTBaseJointTrans(self,tmBaseJioint,tmJointJoint):
          # Update first four base to joint transition matrix based on DH Matrix
         for i in range(6):
             if i == 0:
-                self._TBaseJiointTrans[i] = self._TJointJiointTrans[i]
+                tmBaseJioint[i] = tmJointJoint[i]
             else:
-                temp =np.dot(self._TBaseJiointTrans[i-1] , self._TJointJiointTrans[i])
-                self._TBaseJiointTrans[i] = np.matmul(self._TBaseJiointTrans[i-1] , self._TJointJiointTrans[i])
-        pass
+                temp =np.dot(tmBaseJioint[i-1] , tmJointJoint[i])
+                tmBaseJioint[i] = np.matmul(tmBaseJioint[i-1] , tmJointJoint[i])
                 
-    def UpdateFK(self,thetas,alphas,a,d,pJoints,pDispTCP):
+    def UpdateFK(self,tmBaseJioint,tmJointJoint,thetas,alphas,a,d,pJoints,pDispTCP):
  
-        self.updateAllTJointJointTrans(thetas,alphas,a,d)
-        self.updateAllTBaseJointTrans()
+        self.updateAllTJointJointTrans(tmJointJoint,thetas,alphas,a,d)
+        self.updateAllTBaseJointTrans(tmBaseJioint,tmJointJoint)
         
 
-        pJoints[1] = np.matmul(self._TBaseJiointTrans[0] , pJoints[0]).A1
-        pJoints[2] = np.matmul(self._TBaseJiointTrans[1] , pJoints[0]).A1
-        pJoints[3] = np.matmul(self._TBaseJiointTrans[2] , pJoints[0]).A1
-        pJoints[4]=np.matmul(self._TBaseJiointTrans[3] , pJoints[0]).A1
-        pJoints[5]=np.matmul(self._TBaseJiointTrans[4] , pJoints[0]).A1
-        pJoints[6]=np.matmul(self._TBaseJiointTrans[5] , pJoints[0]).A1
+        pJoints[1] = np.matmul(tmBaseJioint[0] , pJoints[0]).A1
+        pJoints[2] = np.matmul(tmBaseJioint[1] , pJoints[0]).A1
+        pJoints[3] = np.matmul(tmBaseJioint[2] , pJoints[0]).A1
+        pJoints[4]=np.matmul(tmBaseJioint[3] , pJoints[0]).A1
+        pJoints[5]=np.matmul(tmBaseJioint[4] , pJoints[0]).A1
+        pJoints[6]=np.matmul(tmBaseJioint[5] , pJoints[0]).A1
 
 
         dispTCPAxisLength = 20
-        pDispTCP[0] = np.matmul(self._TBaseJiointTrans[5] , [0,0,0,1]).A1
-        pDispTCP[1] = np.matmul(self._TBaseJiointTrans[5] , [dispTCPAxisLength,0,0,1]).A1
-        pDispTCP[2] = np.matmul(self._TBaseJiointTrans[5] , [0,dispTCPAxisLength,0,1]).A1
-        pDispTCP[3] = np.matmul(self._TBaseJiointTrans[5] , [0,0,dispTCPAxisLength,1]).A1
+        pDispTCP[0] = np.matmul(tmBaseJioint[5] , [0,0,0,1]).A1
+        pDispTCP[1] = np.matmul(tmBaseJioint[5] , [dispTCPAxisLength,0,0,1]).A1
+        pDispTCP[2] = np.matmul(tmBaseJioint[5] , [0,dispTCPAxisLength,0,1]).A1
+        pDispTCP[3] = np.matmul(tmBaseJioint[5] , [0,0,dispTCPAxisLength,1]).A1
         
         
             
             
         #TODO Temperately PTCP = Pwirst
-        # pJoints[4]=np.matmul(self._TBaseJiointTrans[3] , pJoints[0]).A1
+        # pJoints[4]=np.matmul(tmBaseJioint[3] , pJoints[0]).A1
         pass
         
         
@@ -118,9 +83,12 @@ class KinematicSolver:
 
  
 
-    def updateEulerAngles(self):
+    def updateEulerAngles(self,tmBaseJioint):
+        
+        # # Treat joint 4 -6 as a sphere joint with  3 rotational degree. Calculate base on rotation sequence x'→y'→z' 
+        # # Reference: https://www.mecademic.com/academic_articles/space-orientation-euler-angles/
    
-        rmTCP =  self._TBaseJiointTrans[5] [:3, :3]
+        rmTCP =  tmBaseJioint[5] [:3, :3]
         r =  Rotation.from_matrix(rmTCP)
         angles = r.as_euler("xyz",degrees=True)
 
