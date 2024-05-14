@@ -42,7 +42,8 @@ class MCKRobot:
     theta4 = math.radians(0)
     theta5 = math.radians(-90)
     theta6 = math.radians(0)
-    thetas = [theta1,theta2,theta3,theta4,theta5,theta6]
+    
+    currThetas = [theta1,theta2,theta3,theta4,theta5,theta6]
     
     pBase = np.array([0,0,0,1])
     pShoulder = np.array([0,0,0,1])
@@ -70,20 +71,23 @@ class MCKRobot:
         
     
     def InitRobot(self):
-        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
+        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.currThetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
         self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self.PoseTCP)
         self.mapJointsToRobotp()
          
     def JogRobot(self, step, axisIndex):
         pTo = self.PoseTCP[axisIndex] + step
+        
+        # Jog in World XYZ
         if(axisIndex<3):
             self.moveL(self.PoseTCP, pTo)
         else:
             pass
     
-    def moveL(self, pFrom, pTo):
-        self._ks.UpdateIKOneToThreeJoints(x,y,z,True,self.thetas, self.alphas, self.a, self.d)
-        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
+    def moveLSingle(self, pFrom, pTo):
+        
+        self._ks.UpdateIKOneToThreeJoints(pTo,True, self.a, self.d)
+        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.currThetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
         self.mapJointsToRobotp()
         pass 
         
@@ -97,8 +101,8 @@ class MCKRobot:
     #     self.mapJointsToRobotp()
         
     def JogJoint(self, index, step):
-        self.thetas[index] = self.thetas[index] + math.radians(step)
-        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
+        self.currThetas[index] = self.currThetas[index] + math.radians(step)
+        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.currThetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
         self.mapJointsToRobotp()
 
     def mapJointsToRobotp(self):

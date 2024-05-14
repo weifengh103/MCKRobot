@@ -100,23 +100,40 @@ class KinematicSolver:
        
  
     # IK Section
-    def getRoatedXandTheata1(self,px,py):
+    # def getRoatedXandTheata1(self,px,py):
 
-        theta1 = math.atan2(py,px)
-        xAxisAngleDeg = math.degrees(theta1)
+    #     theta1 = math.atan2(py,px)
+    #     xAxisAngleDeg = math.degrees(theta1)
+        
+    #     #  rotatedX is the same as the length of the arm on X axis 
+    #     rotatedX = math.pow((py**2 + px**2),0.5)
+        
+    #     if(abs(theta1)>math.pi/2):
+    #         return -rotatedX, theta1
+    #     else:
+    #         return rotatedX, theta1
+        
+    def UpdateIKOneToThreeJoints(self,pose,elbowUp, a, d):
+ 
+        thetas = []
+        px = pose[0]
+        py = pose[1]
+        pz = pose[2]
+
+        #project the next new x to current x' axis and get j1
+        
+        # pxRotated, thetas[0] = self.getRoatedXandTheata1(px,py)
+        
+        thetas[0] = math.atan2(py,px)
+        
+        xAxisAngleDeg = math.degrees(thetas[0] )
         
         #  rotatedX is the same as the length of the arm on X axis 
-        rotatedX = math.pow((py**2 + px**2),0.5)
+        pxRotated = math.pow((py**2 + px**2),0.5) 
         
-        if(abs(theta1)>math.pi/2):
-            return -rotatedX, theta1
-        else:
-            return rotatedX, theta1
-        
-    def UpdateIKOneToThreeJoints(self,px,py,pz,elbowUp, thetas, alphas, a, d):
- 
-        #project the next new x to current x' axis and get j1
-        pxRotated, thetas[0] = self.getRoatedXandTheata1(px,py)
+        if(abs(thetas[0])>math.pi/2):
+            pxRotated = -pxRotated
+       
         
         
         # if(pxRotated == 0):
@@ -139,6 +156,22 @@ class KinematicSolver:
         else:
             thetas[2] = j3Abs
             thetas[1] = math.atan(pzLocal/pxRotated) -  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[3]*math.cos(j3Abs)))
+        
+        rx = pose[3]
+        ry = pose[4]
+        rz = pose[5]
+        
+        rm1 = Rotation.from_euler('ZYX', [rz, ry, rx], degrees=False).as_matrix
+        
+        cos_theta = np.cos( -thetas[0])
+        sin_theta = np.sin( -thetas[0])
+    
+        rm2 = np.array([[cos_theta, -sin_theta, 0],
+                    [sin_theta, cos_theta, 0],
+                    [0, 0, 1]])
+        
+        rmedn = np.matmul(rm1,rm2)
+        return thetas
         
 
     
