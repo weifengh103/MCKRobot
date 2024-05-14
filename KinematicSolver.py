@@ -49,9 +49,9 @@ class KinematicSolver:
         pJoints[1] = np.matmul(tmBaseJioint[0] , pJoints[0]).A1
         pJoints[2] = np.matmul(tmBaseJioint[1] , pJoints[0]).A1
         pJoints[3] = np.matmul(tmBaseJioint[2] , pJoints[0]).A1
-        pJoints[4]=np.matmul(tmBaseJioint[3] , pJoints[0]).A1
-        pJoints[5]=np.matmul(tmBaseJioint[4] , pJoints[0]).A1
-        pJoints[6]=np.matmul(tmBaseJioint[5] , pJoints[0]).A1
+        pJoints[4] = np.matmul(tmBaseJioint[3] , pJoints[0]).A1
+        pJoints[5] = np.matmul(tmBaseJioint[4] , pJoints[0]).A1
+        pJoints[6] = np.matmul(tmBaseJioint[5] , pJoints[0]).A1
 
 
         dispTCPAxisLength = 20
@@ -60,8 +60,6 @@ class KinematicSolver:
         pDispTCP[2] = np.matmul(tmBaseJioint[5] , [0,dispTCPAxisLength,0,1]).A1
         pDispTCP[3] = np.matmul(tmBaseJioint[5] , [0,0,dispTCPAxisLength,1]).A1
         
-        
-            
             
         #TODO Temperately PTCP = Pwirst
         # pJoints[4]=np.matmul(tmBaseJioint[3] , pJoints[0]).A1
@@ -83,27 +81,31 @@ class KinematicSolver:
 
  
 
-    def updateEulerAngles(self,tmBaseJioint):
+    def getTCPPoseFromTMBaseJoint(self,tmBaseJoint,curTCPPose):
         
         # # Treat joint 4 -6 as a sphere joint with  3 rotational degree. Calculate base on rotation sequence x'→y'→z' 
         # # Reference: https://www.mecademic.com/academic_articles/space-orientation-euler-angles/
-   
-        rmTCP =  tmBaseJioint[5] [:3, :3]
+    
+        translationTCP = tmBaseJoint[5][:3, 3].A1
+
+        rmTCP =  tmBaseJoint[5] [:3, :3]
         r =  Rotation.from_matrix(rmTCP)
-        angles = r.as_euler("xyz",degrees=True)
+        eulerAngles = r.as_euler("xyz",degrees=True)
 
         #### Modify the angles
-        print(angles)
+        # curTCPPose = (translationTCP.tolist() + eulerAngles.tolist())
+        curTCPPose[:3] = translationTCP.tolist()
+        curTCPPose[3:] = eulerAngles.tolist()
+        print(curTCPPose)
        
-   
-                
-        
  
     # IK Section
     def getRoatedXandTheata1(self,px,py):
 
         theta1 = math.atan2(py,px)
         xAxisAngleDeg = math.degrees(theta1)
+        
+        #  rotatedX is the same as the length of the arm on X axis 
         rotatedX = math.pow((py**2 + px**2),0.5)
         
         if(abs(theta1)>math.pi/2):
@@ -113,27 +115,23 @@ class KinematicSolver:
         
     def UpdateIKOneToThreeJoints(self,px,py,pz,elbowUp, thetas, alphas, a, d):
  
-        j1 = thetas[0]
-        j2 = thetas[1]
-        j3 = thetas[2]
-        j4 = thetas[3]
-        j5 = thetas[4]
-        j6 = thetas[5]
-        
+        #project the next new x to current x' axis and get j1
         pxRotated, thetas[0] = self.getRoatedXandTheata1(px,py)
         
         
-        if(pxRotated == 0):
-            pxRotated = 0.00001
+        # if(pxRotated == 0):
+        #     pxRotated = 0.00001
 
         pzLocal = pz - d[0]
             
         # pzLocal=0
 
+        # get j3
         j3Abs =  math.pi - math.acos((a[1]**2 + a[3]**2 - pxRotated**2 - pzLocal**2)/(2*a[1]*a[3])) 
         
-        # j3Abs = j3Abs + math.pi/2
         j3AbsDeg = math.degrees(j3Abs)
+        
+        # get j2
         if(elbowUp == True):
             thetas[2] = - j3Abs
             thetas[1] = math.atan(pzLocal/pxRotated) +  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[3]*math.cos(j3Abs)))
@@ -142,6 +140,6 @@ class KinematicSolver:
             thetas[2] = j3Abs
             thetas[1] = math.atan(pzLocal/pxRotated) -  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[3]*math.cos(j3Abs)))
         
-        return [j1, j2, j3,j4,j5,j6]
+
     
      

@@ -6,6 +6,12 @@ import math
 from KinematicSolver import KinematicSolver as KS
 
 class MCKRobot:
+    
+    
+    resolutionMoveL = 0.1 #0.1 mm
+    resolutionMovej = 0.1 #0.1 deg
+    
+    
     #DH parameters
     
     # a is distance between the origin of frame n and n-1 along Xn
@@ -26,6 +32,8 @@ class MCKRobot:
     
     
     Joints = [J1,J2,J3,J4,J5,J6]
+    
+    PoseTCP = []
     
     theta1 = math.radians(0)
     theta2 = math.radians(45)
@@ -51,25 +59,42 @@ class MCKRobot:
     pDispTCPY = np.array([0,0,0,1])
     pDispTCPZ = np.array([0,0,0,1])
     pDispTCP = [pDispTCPOrig,pDispTCPX,pDispTCPY,pDispTCPZ]
- 
+    
     _ks = KS()
 
     
     def __init__(self):
+        self.InitRobot()
+        
         pass 
         
     
     def InitRobot(self):
         self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
-        self._ks.updateEulerAngles(self.tmBaseJioint)
+        self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self.PoseTCP)
         self.mapJointsToRobotp()
          
+    def JogRobot(self, step, axisIndex):
+        pTo = self.PoseTCP[axisIndex] + step
+        if(axisIndex<3):
+            self.moveL(self.PoseTCP, pTo)
+        else:
+            pass
     
-    def move(self,x,y,z):
-        pass
+    def moveL(self, pFrom, pTo):
         self._ks.UpdateIKOneToThreeJoints(x,y,z,True,self.thetas, self.alphas, self.a, self.d)
         self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
         self.mapJointsToRobotp()
+        pass 
+        
+    
+
+    
+    # def move(self,x,y,z):
+        
+    #     self._ks.UpdateIKOneToThreeJoints(x,y,z,True,self.thetas, self.alphas, self.a, self.d)
+    #     self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
+    #     self.mapJointsToRobotp()
         
     def JogJoint(self, index, step):
         self.thetas[index] = self.thetas[index] + math.radians(step)

@@ -110,7 +110,7 @@ def main():
     y = 0
     z = 85.355
 
-    _rb.InitRobot()
+    # _rb.InitRobot()
     MCKPlot()
  
     while True:
