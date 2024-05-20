@@ -7,9 +7,15 @@ from scipy.spatial.transform import Rotation
 
 class KinematicSolver:
     
-
- 
-    def __init__(self):
+    
+    a = [0] * 6
+    d = [0] * 6
+    alphas = [0 * 6]
+    
+    def __init__(self,a,d,alphas):
+        self.a = a
+        self.d = d
+        self.alphas = alphas
         pass
      
     # FK Section
@@ -25,11 +31,11 @@ class KinematicSolver:
         return tempMat
 
     def updateAllTJointJointTrans(self,tmJointJoint,thetas,alphas,a,d):
-        # Update first four joint to joint transition matrix based on DH Matrix
-        
         # Note: When i = 0, first matrix is from base to joint 2 (Shoulder)
         for i in range(6):
             tmJointJoint[i]=self.getDHTransMatrix(i,thetas,alphas,a,d)
+            
+ 
     
     def updateAllTBaseJointTrans(self,tmBaseJioint,tmJointJoint):
          # Update first four base to joint transition matrix based on DH Matrix
@@ -113,7 +119,7 @@ class KinematicSolver:
     #     else:
     #         return rotatedX, theta1
         
-    def UpdateIKOneToThreeJoints(self,pose,elbowUp, a, d):
+    def UpdateIKOneToThreeJoints(self,pose,elbowUp, a, d,tmJointJoint):
  
         thetas = []
         px = pose[0]
@@ -157,20 +163,30 @@ class KinematicSolver:
             thetas[2] = j3Abs
             thetas[1] = math.atan(pzLocal/pxRotated) -  math.atan(a[2]*math.sin(j3Abs)/(a[1] + a[3]*math.cos(j3Abs)))
         
+        
+        # process for getting j4, j5 and j6 
+                
         rx = pose[3]
         ry = pose[4]
         rz = pose[5]
         
-        rm1 = Rotation.from_euler('ZYX', [rz, ry, rx], degrees=False).as_matrix
+        # get world rotation of flage
+        rmBaseToFlange = Rotation.from_euler('ZYX', [rz, ry, rx], degrees=False).as_matrix
         
         cos_theta = np.cos( -thetas[0])
         sin_theta = np.sin( -thetas[0])
     
-        rm2 = np.array([[cos_theta, -sin_theta, 0],
+        # rotation mt for rotatiing pose to ZX plan
+        rmBaseToFlangeRotated = np.array([[cos_theta, -sin_theta, 0],
                     [sin_theta, cos_theta, 0],
                     [0, 0, 1]])
         
-        rmedn = np.matmul(rm1,rm2)
+        # get world rotation of flage after rotated back to ZX plan
+        rmBaseToFlange = np.matmul(rmBaseToFlange,rmBaseToFlangeRotated)
+        
+        # update first FK for geting TM base to link3 end 
+        
+        
         return thetas
         
 

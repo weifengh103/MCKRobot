@@ -61,7 +61,7 @@ class MCKRobot:
     pDispTCPZ = np.array([0,0,0,1])
     pDispTCP = [pDispTCPOrig,pDispTCPX,pDispTCPY,pDispTCPZ]
     
-    _ks = KS()
+    _ks = KS(a,d,alphas)
 
     
     def __init__(self):
