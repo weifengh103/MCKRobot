@@ -66,12 +66,12 @@ class MCKRobot:
     
     def __init__(self):
         self.InitRobot()
-        
+        self._ks.UpdateIKOneToThreeJoints([50,0,50,0,0,1.75],True)
         pass 
         
     
     def InitRobot(self):
-        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.currThetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
+        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.currThetas, self.pJoints, self.pDispTCP)
         self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self.PoseTCP)
         self.mapJointsToRobotp()
          
@@ -86,8 +86,8 @@ class MCKRobot:
     
     def moveLSingle(self, pFrom, pTo):
         
-        self._ks.UpdateIKOneToThreeJoints(pTo,True, self.a, self.d)
-        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.currThetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
+        self._ks.UpdateIKOneToThreeJoints(pTo,True)
+        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.currThetas, self.pJoints, self.pDispTCP)
         self.mapJointsToRobotp()
         pass 
         
