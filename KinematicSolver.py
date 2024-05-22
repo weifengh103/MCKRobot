@@ -151,31 +151,32 @@ class KinematicSolver:
 
         pzLocal = pz - self.d[0]
             
-        # pzLocal=0
-
+        
+        # j2 and j3 calculation is absed on law of cosines and this geometric method https://www.roboticworx.io/p/how-to-calculate-inverse-kinematics
+        
         # get j3
-        j3Abs =  math.pi - math.acos((self.a[1]**2 + self.a[3]**2 - pxRotated**2 - pzLocal**2)/(2*self.a[1]*self.a[3])) 
+        j3Abs =  math.pi - math.acos((self.a[1]**2 + self.d[3]**2 - pxRotated**2 - pzLocal**2)/(2*self.a[1]*self.d[3])) 
         
         j3AbsDeg = math.degrees(j3Abs)
         
         # get j2
         if(elbowUp == True):
             thetas[2] = - j3Abs
-            thetas[1] = math.atan(pzLocal/pxRotated) +  math.atan(self.a[2]*math.sin(j3Abs)/(self.a[1] + self.a[3]*math.cos(j3Abs)))
+            thetas[1] = math.atan(pzLocal/pxRotated) +  math.atan(self.d[3]*math.sin(j3Abs)/(self.a[1] + self.d[3]*math.cos(j3Abs)))
             
         else:
             thetas[2] = j3Abs
-            thetas[1] = math.atan(pzLocal/pxRotated) -  math.atan(self.a[2]*math.sin(j3Abs)/(self.a[1] + self.a[3]*math.cos(j3Abs)))
+            thetas[1] = math.atan(pzLocal/pxRotated) -  math.atan(self.d[3]*math.sin(j3Abs)/(self.a[1] + self.d[3]*math.cos(j3Abs)))
         
         
         # process for getting j4, j5 and j6 
                 
-        rx = pose[3]
-        ry = pose[4]
-        rz = pose[5]
+        rX = pose[3]
+        rY = pose[4]
+        rZ = pose[5]
         
         # get world rotation of flage
-        rmBaseToFlange = Rotation.from_euler('ZYX', [rz, ry, rx], degrees=False).as_matrix
+        rmBaseToFlange = Rotation.from_euler('XYZ', [rX, rY, rZ], degrees=False).as_matrix()
         
         # cos_theta = np.cos( -thetas[0])
         # sin_theta = np.sin( -thetas[0])
@@ -194,16 +195,40 @@ class KinematicSolver:
         self.updateAllTJointJointTrans(tmJointJoint,thetas)
         self.updateAllTBaseJointTrans(tmBaseJioint,tmJointJoint)
         
-        rmBaseToLink2End = np.matmul(np.matmul(tmBaseJioint[0],tmBaseJioint[1]),tmBaseJioint[2])
+        rmBaseToLink2End = np.matmul(np.matmul(tmBaseJioint[0],tmBaseJioint[1]),tmBaseJioint[2])[:3,:3]
         rmBaseToLink2EndInv = np.linalg.inv(rmBaseToLink2End) 
         
-        rmBaseLink2EndFlange = np.matmul(rmBaseToLink2EndInv, rmBaseToFlange)
-        
        
-        angles =  rmBaseLink2EndFlange.as_euler('XYZ',degrees = False) 
         
-        return thetas
+        yRotationAngle =  thetas[1] + thetas[2]
+        zRotationAngle = thetas[0]
         
+        cos_theta = np.cos(yRotationAngle)
+        sin_theta = np.sin(yRotationAngle)
+        
+        rmY = np.array([[cos_theta, 0, sin_theta],
+                        [0, 1, 0],
+                        [-sin_theta, 0, cos_theta]])
+        
+        cos_theta = np.cos(zRotationAngle)
+        sin_theta = np.sin(zRotationAngle)
+        
+        rmZ = np.array([[cos_theta, -sin_theta, 0],
+                        [sin_theta, cos_theta, 0],
+                        [0, 0, 1]])
+        
+        rmBaseToLink2End = np.matmul(rmY,rmZ)
+        rmBaseToLink2EndInv = np.linalg.inv(rmBaseToLink2End) 
+        
+        rbLink2EndToFlange = np.matmul(rmBaseToLink2EndInv, rmBaseToFlange)
+        
+        r = Rotation.from_matrix(rbLink2EndToFlange)
+        angles =  r.as_euler('XYZ',degrees = False) 
+        
+        thetas[3] = angles[2]
+        thetas[4] = angles[1]
+        thetas[5] = angles[0]
+        pass
 
     
      
