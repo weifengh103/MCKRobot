@@ -63,14 +63,14 @@ class KinematicSolver:
 
 
         dispTCPAxisLength = 20
-        dispTMIndex = 3
+        dispTMIndex = 5
         pDispTCP[0] = np.matmul(tmBaseJioint[dispTMIndex] , [0,0,0,1]).A1
         pDispTCP[1] = np.matmul(tmBaseJioint[dispTMIndex] , [dispTCPAxisLength,0,0,1]).A1
         pDispTCP[2] = np.matmul(tmBaseJioint[dispTMIndex] , [0,dispTCPAxisLength,0,1]).A1
         pDispTCP[3] = np.matmul(tmBaseJioint[dispTMIndex] , [0,0,dispTCPAxisLength,1]).A1
         
             
-        print(tmBaseJioint[3])
+        print(tmBaseJioint[5])
         pass
         
         
@@ -224,9 +224,13 @@ class KinematicSolver:
                         [0, 0, 1]])
         
         rmBaseToLink2End = np.matmul(rmY,rmZ)
+        rmBaseToLink2End2 = Rotation.from_euler('XYZ', [0,  yRotationAngle, zRotationAngle], degrees=False).as_matrix()
+ 
+        
         rmBaseToLink2EndInv = np.linalg.inv(rmBaseToLink2End) 
         
         rbLink2EndToFlange = np.matmul(rmBaseToLink2EndInv, rmBaseToFlange)
+        
         
         r = Rotation.from_matrix(rbLink2EndToFlange)
         angles =  r.as_euler('XYZ',degrees = False) 
@@ -234,11 +238,11 @@ class KinematicSolver:
         
         # thetas[2] = thetas[2]+ math.radians(90)
         #RZ J4
-        thetas[3] = angles[2] 
+        thetas[3] = angles[0] 
         #RY J5
-        thetas[4] = angles[1] - math.radians(90)
+        thetas[4] = angles[1] 
         #RX J6
-        thetas[5] = angles[0]
+        thetas[5] = angles[2]
         
         
         for i in range(6):

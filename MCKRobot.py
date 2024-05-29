@@ -75,7 +75,7 @@ class MCKRobot:
         
     
     def InitRobot(self):
-        jointAngles = self._ks.UpdateIK([85.355,0,85.355,180,0,0],True)
+        jointAngles = self._ks.UpdateIK([85.355,0,85.355,0,0,0],True)
         self.inputAngleDeg = jointAngles
         
         # self.inputAngleDeg = np.subtract(jointAngles ,self.thetas)
