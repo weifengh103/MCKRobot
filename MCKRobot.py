@@ -43,7 +43,7 @@ class MCKRobot:
     
     Joints = [J1,J2,J3,J4,J5,J6]
     
-    PoseTCP = []
+    CurrTCPPose = [85.355,0,85.355,180,0,0]
 
  
     
@@ -75,7 +75,7 @@ class MCKRobot:
         
     
     def InitRobot(self):
-        jointAngles = self._ks.UpdateIK([85.355,0,85.355,0,0,0],True)
+        jointAngles = self._ks.UpdateIK(self.CurrTCPPose,True)
         self.inputAngleDeg = jointAngles
         
         # self.inputAngleDeg = np.subtract(jointAngles ,self.thetas)
@@ -83,18 +83,23 @@ class MCKRobot:
         # self.inputAngleDeg=[0,45,-45,0,0,0]
         # self.inputAngleDeg=[0,0,-0,0,0,0]
         self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.inputAngleDeg, self.pJoints, self.pDispTCP)
-        self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self.PoseTCP)
+        self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self.CurrTCPPose)
         # print(self.tmBaseJioint[5])
         self.mapJointsToRobotp()
          
-    def JogRobot(self, step, axisIndex):
-        pTo = self.PoseTCP[axisIndex] + step
+    def JogRobot(self, step, poseIndex):
+        self.CurrTCPPose[poseIndex] = self.CurrTCPPose[poseIndex] +step
+        jointAngles = self._ks.UpdateIK(self.CurrTCPPose,True)
+        self.inputAngleDeg = jointAngles
         
-        # Jog in World XYZ
-        if(axisIndex<3):
-            self.moveL(self.PoseTCP, pTo)
-        else:
-            pass
+        # self.inputAngleDeg = np.subtract(jointAngles ,self.thetas)
+        
+        # self.inputAngleDeg=[0,45,-45,0,0,0]
+        # self.inputAngleDeg=[0,0,-0,0,0,0]
+        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.inputAngleDeg, self.pJoints, self.pDispTCP)
+        # self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self.CurrTCPPose)
+        # print(self.tmBaseJioint[5])
+        self.mapJointsToRobotp()
     
     def moveLSingle(self, pFrom, pTo):
         

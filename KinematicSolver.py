@@ -70,7 +70,7 @@ class KinematicSolver:
         pDispTCP[3] = np.matmul(tmBaseJioint[dispTMIndex] , [0,0,dispTCPAxisLength,1]).A1
         
             
-        print(tmBaseJioint[5])
+        print(tmBaseJioint[3])
         pass
         
         
@@ -209,22 +209,22 @@ class KinematicSolver:
         yRotationAngle =  thetas[1] + thetas[2]
         zRotationAngle = thetas[0]
         
-        cos_theta1 = np.cos(yRotationAngle)
-        sin_theta1 = np.sin(yRotationAngle)
+        # cos_theta1 = np.cos(yRotationAngle)
+        # sin_theta1 = np.sin(yRotationAngle)
         
-        rmY = np.array([[cos_theta1, 0, sin_theta1],
-                        [0, 1, 0],
-                        [-sin_theta1, 0, cos_theta1]])
+        # rmY = np.array([[cos_theta1, 0, sin_theta1],
+        #                 [0, 1, 0],
+        #                 [-sin_theta1, 0, cos_theta1]])
         
-        cos_theta = np.cos(zRotationAngle)
-        sin_theta = np.sin(zRotationAngle)
+        # cos_theta = np.cos(zRotationAngle)
+        # sin_theta = np.sin(zRotationAngle)
         
-        rmZ = np.array([[cos_theta, -sin_theta, 0],
-                        [sin_theta, cos_theta, 0],
-                        [0, 0, 1]])
+        # rmZ = np.array([[cos_theta, -sin_theta, 0],
+        #                 [sin_theta, cos_theta, 0],
+        #                 [0, 0, 1]])
         
-        rmBaseToLink2End = np.matmul(rmY,rmZ)
-        rmBaseToLink2End2 = Rotation.from_euler('XYZ', [0,  yRotationAngle, zRotationAngle], degrees=False).as_matrix()
+        # rmBaseToLink2End = np.matmul(rmY,rmZ)
+        rmBaseToLink2End = Rotation.from_euler('XYZ', [0,  yRotationAngle, zRotationAngle], degrees=False).as_matrix()
  
         
         rmBaseToLink2EndInv = np.linalg.inv(rmBaseToLink2End) 
@@ -238,7 +238,7 @@ class KinematicSolver:
         
         # thetas[2] = thetas[2]+ math.radians(90)
         #RZ J4
-        thetas[3] = angles[0] 
+        thetas[3] = angles[0] + math.radians(180)
         #RY J5
         thetas[4] = angles[1] 
         #RX J6

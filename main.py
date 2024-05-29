@@ -117,15 +117,8 @@ def main():
         i = 0
         j = 0
         MCKPlot()
-        # for i in range(6):
-        #     j = 0
-        #     for j in range(10):
-        #         _rb.JogJoint(i,2)
-        #         MCKPlot()
-        #     j = 0
-        #     for j in range(10):
-        #         _rb.JogJoint(i,-2) 
-        #         MCKPlot()
+        for i in range(6):
+            _rb.JogRobot(-0.1,0)
             # j = 0
             # for j in range(10):
             #     _rb.JogJoint(i,2)
