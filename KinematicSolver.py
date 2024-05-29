@@ -63,13 +63,14 @@ class KinematicSolver:
 
 
         dispTCPAxisLength = 20
-        pDispTCP[0] = np.matmul(tmBaseJioint[5] , [0,0,0,1]).A1
-        pDispTCP[1] = np.matmul(tmBaseJioint[5] , [dispTCPAxisLength,0,0,1]).A1
-        pDispTCP[2] = np.matmul(tmBaseJioint[5] , [0,dispTCPAxisLength,0,1]).A1
-        pDispTCP[3] = np.matmul(tmBaseJioint[5] , [0,0,dispTCPAxisLength,1]).A1
+        dispTMIndex = 3
+        pDispTCP[0] = np.matmul(tmBaseJioint[dispTMIndex] , [0,0,0,1]).A1
+        pDispTCP[1] = np.matmul(tmBaseJioint[dispTMIndex] , [dispTCPAxisLength,0,0,1]).A1
+        pDispTCP[2] = np.matmul(tmBaseJioint[dispTMIndex] , [0,dispTCPAxisLength,0,1]).A1
+        pDispTCP[3] = np.matmul(tmBaseJioint[dispTMIndex] , [0,0,dispTCPAxisLength,1]).A1
         
             
-        print(tmBaseJioint[5])
+        print(tmBaseJioint[3])
         pass
         
         
@@ -199,20 +200,21 @@ class KinematicSolver:
         self.updateAllTJointJointTrans(tmJointJoint,thetas)
         self.updateAllTBaseJointTrans(tmBaseJioint,tmJointJoint)
         
-        rmBaseToLink2End = np.matmul(np.matmul(tmBaseJioint[0],tmBaseJioint[1]),tmBaseJioint[2])[:3,:3]
-        rmBaseToLink2EndInv = np.linalg.inv(rmBaseToLink2End) 
+        # rmBaseToLink2End = np.matmul(np.matmul(np.matmul(tmBaseJioint[0],tmBaseJioint[1]),tmBaseJioint[2]),tmBaseJioint[3])[:3,:3]
+        # # rmBaseToLink2End =  np.matmul(tmBaseJioint[0],tmBaseJioint[1])[:3,:3]
+        # rmBaseToLink2EndInv = np.linalg.inv(rmBaseToLink2End) 
         
        
         
         yRotationAngle =  thetas[1] + thetas[2]
         zRotationAngle = thetas[0]
         
-        cos_theta = np.cos(yRotationAngle)
-        sin_theta = np.sin(yRotationAngle)
+        cos_theta1 = np.cos(yRotationAngle)
+        sin_theta1 = np.sin(yRotationAngle)
         
-        rmY = np.array([[cos_theta, 0, sin_theta],
+        rmY = np.array([[cos_theta1, 0, sin_theta1],
                         [0, 1, 0],
-                        [-sin_theta, 0, cos_theta]])
+                        [-sin_theta1, 0, cos_theta1]])
         
         cos_theta = np.cos(zRotationAngle)
         sin_theta = np.sin(zRotationAngle)
@@ -231,11 +233,11 @@ class KinematicSolver:
         
         
         # thetas[2] = thetas[2]+ math.radians(90)
-        #RZ
+        #RZ J4
         thetas[3] = angles[2] 
-        #RY
+        #RY J5
         thetas[4] = angles[1] - math.radians(90)
-        #RX
+        #RX J6
         thetas[5] = angles[0]
         
         
