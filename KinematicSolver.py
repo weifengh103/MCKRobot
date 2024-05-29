@@ -70,7 +70,7 @@ class KinematicSolver:
         pDispTCP[3] = np.matmul(tmBaseJioint[dispTMIndex] , [0,0,dispTCPAxisLength,1]).A1
         
             
-        print(tmBaseJioint[3])
+        # print(tmBaseJioint[3])
         pass
         
         
@@ -224,7 +224,7 @@ class KinematicSolver:
         #                 [0, 0, 1]])
         
         # rmBaseToLink2End = np.matmul(rmY,rmZ)
-        rmBaseToLink2End = Rotation.from_euler('XYZ', [0,  yRotationAngle, zRotationAngle], degrees=False).as_matrix()
+        rmBaseToLink2End = Rotation.from_euler('XYZ', [0,  -yRotationAngle, zRotationAngle], degrees=False).as_matrix()
  
         
         rmBaseToLink2EndInv = np.linalg.inv(rmBaseToLink2End) 
