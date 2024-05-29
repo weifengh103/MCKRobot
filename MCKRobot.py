@@ -22,7 +22,17 @@ class MCKRobot:
               math.radians(90),math.radians(90),math.radians(0)]
     
     # d is the distance from Xn-1 to Xn along the Zn-1 direction.
-    d = [50,0,0,50,0,30]
+    d = [50,0,0,50,0,0]
+    
+    # theta is anangle from  Xn-1 to Xn along Zn-1
+    theta1 = math.radians(0)
+    theta2 = math.radians(0)
+    theta3 = math.radians(90)
+    theta4 = math.radians(-180)
+    theta5 = math.radians(90)
+    theta6 = math.radians(0)
+    
+    thetas = [theta1,theta2,theta3,theta4,theta5,theta6]
     
     # Joint angles and positions
     J1,J2,J3,J4,J5,J6 = 0.0,0.0,0.0,0.0,0.0,0.0
@@ -34,16 +44,10 @@ class MCKRobot:
     Joints = [J1,J2,J3,J4,J5,J6]
     
     PoseTCP = []
+
+ 
     
-    theta1 = math.radians(0)
-    theta2 = math.radians(0)
-    theta3 = math.radians(0+90)
-    
-    theta4 = math.radians(0)
-    theta5 = math.radians(0-90)
-    theta6 = math.radians(0)
-    
-    currThetas = [theta1,theta2,theta3,theta4,theta5,theta6]
+    inputAngleDeg = [0,0,0,0,0,0]
     
     pBase = np.array([0,0,0,1])
     pShoulder = np.array([0,0,0,1])
@@ -61,18 +65,24 @@ class MCKRobot:
     pDispTCPZ = np.array([0,0,0,1])
     pDispTCP = [pDispTCPOrig,pDispTCPX,pDispTCPY,pDispTCPZ]
     
-    _ks = KS(a,d,alphas)
+    _ks = KS(a,d,alphas,thetas)
 
     
     def __init__(self):
         self.InitRobot()
-        self._ks.UpdateIKOneToThreeJoints([50,0,50,0,0,0],True)
+      
         pass 
         
     
     def InitRobot(self):
-        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.currThetas, self.pJoints, self.pDispTCP)
+        jointAngles = self._ks.UpdateIK([85.355,0,85.355,-135,0,0],True)
+        self.inputAngleDeg = jointAngles
+        # self.inputAngleDeg = np.subtract(jointAngles ,self.thetas)
+        # self.inputAngleDeg=[0,45,-45,45,0,0]
+        # self.inputAngleDeg=[0,0,-0,0,0,0]
+        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.inputAngleDeg, self.pJoints, self.pDispTCP)
         self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self.PoseTCP)
+        # print(self.tmBaseJioint[5])
         self.mapJointsToRobotp()
          
     def JogRobot(self, step, axisIndex):

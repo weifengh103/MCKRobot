@@ -12,28 +12,30 @@ class KinematicSolver:
     d = [0] * 6
     alphas = [0 * 6]
     
-    def __init__(self,a,d,alphas):
+    def __init__(self,a,d,alphas,thetas):
         self.a = a
         self.d = d
         self.alphas = alphas
+        self.thetas = thetas
         pass
      
     # FK Section
     
-    def getDHTransMatrix(self,i,thetas):
+    def getDHTransMatrix(self,i,inputAngleDeg):
+        newTheta = self.thetas[i] + math.radians( inputAngleDeg[i])
         tempMat = np.matrix([
-                        [math.cos(thetas[i]), -math.sin(thetas[i]) * math.cos(self.alphas[i]),  math.sin(thetas[i]) * math.sin(self.alphas[i]), self.a[i] * math.cos(thetas[i])],
-                        [math.sin(thetas[i]),  math.cos(thetas[i]) * math.cos(self.alphas[i]), -math.cos(thetas[i]) * math.sin(self.alphas[i]), self.a[i] * math.sin(thetas[i])],
+                        [math.cos(newTheta), -math.sin(newTheta) * math.cos(self.alphas[i]),  math.sin(newTheta) * math.sin(self.alphas[i]), self.a[i] * math.cos(newTheta)],
+                        [math.sin(newTheta),  math.cos(newTheta) * math.cos(self.alphas[i]), -math.cos(newTheta) * math.sin(self.alphas[i]), self.a[i] * math.sin(newTheta)],
                         [0,                    math.sin(self.alphas[i]),                        math.cos(self.alphas[i]),                       self.d[i]],
                         [0,                    0,                                          0,                                         1]
                         ])
         
         return tempMat
 
-    def updateAllTJointJointTrans(self,tmJointJoint,thetas):
+    def updateAllTJointJointTrans(self,tmJointJoint,inputAngleDeg):
         # Note: When i = 0, first matrix is from base to joint 2 (Shoulder)
         for i in range(6):
-            tmJointJoint[i]=self.getDHTransMatrix(i,thetas)
+            tmJointJoint[i]=self.getDHTransMatrix(i,inputAngleDeg)
             
  
     
@@ -46,9 +48,9 @@ class KinematicSolver:
                 temp =np.dot(tmBaseJioint[i-1] , tmJointJoint[i])
                 tmBaseJioint[i] = np.matmul(tmBaseJioint[i-1] , tmJointJoint[i])
                 
-    def UpdateFK(self,tmBaseJioint,tmJointJoint,thetas,pJoints,pDispTCP):
+    def UpdateFK(self,tmBaseJioint,tmJointJoint,inputAngleDeg,pJoints,pDispTCP):
  
-        self.updateAllTJointJointTrans(tmJointJoint,thetas)
+        self.updateAllTJointJointTrans(tmJointJoint,inputAngleDeg)
         self.updateAllTBaseJointTrans(tmBaseJioint,tmJointJoint)
         
 
@@ -67,8 +69,7 @@ class KinematicSolver:
         pDispTCP[3] = np.matmul(tmBaseJioint[5] , [0,0,dispTCPAxisLength,1]).A1
         
             
-        #TODO Temperately PTCP = Pwirst
-        # pJoints[4]=np.matmul(tmBaseJioint[3] , pJoints[0]).A1
+        print(tmBaseJioint[5])
         pass
         
         
@@ -119,7 +120,7 @@ class KinematicSolver:
     #     else:
     #         return rotatedX, theta1
         
-    def UpdateIKOneToThreeJoints(self,pose,elbowUp):
+    def UpdateIK(self,pose,elbowUp):
  
  
         tmJointJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
@@ -155,6 +156,9 @@ class KinematicSolver:
         # j2 and j3 calculation is absed on law of cosines and this geometric method https://www.roboticworx.io/p/how-to-calculate-inverse-kinematics
         
         # get j3
+        temp = 2*self.a[1]*self.d[3]
+        temp2 = self.a[1]**2 + self.d[3]**2 - pxRotated**2 - pzLocal**2
+        temp3 = temp2/temp
         j3Abs =  math.pi - math.acos((self.a[1]**2 + self.d[3]**2 - pxRotated**2 - pzLocal**2)/(2*self.a[1]*self.d[3])) 
         
         j3AbsDeg = math.degrees(j3Abs)
@@ -171,9 +175,9 @@ class KinematicSolver:
         
         # process for getting j4, j5 and j6 
                 
-        rX = pose[3]
-        rY = pose[4]
-        rZ = pose[5]
+        rX = math.radians(pose[3])
+        rY = math.radians(pose[4])
+        rZ = math.radians(pose[5])
         
         # get world rotation of flage
         rmBaseToFlange = Rotation.from_euler('XYZ', [rX, rY, rZ], degrees=False).as_matrix()
@@ -225,9 +229,21 @@ class KinematicSolver:
         r = Rotation.from_matrix(rbLink2EndToFlange)
         angles =  r.as_euler('XYZ',degrees = False) 
         
-        thetas[3] = angles[2]
-        thetas[4] = angles[1]
+        
+        # thetas[2] = thetas[2]+ math.radians(90)
+        #RZ
+        thetas[3] = angles[2] 
+        #RY
+        thetas[4] = angles[1] - math.radians(90)
+        #RX
         thetas[5] = angles[0]
+        
+        
+        for i in range(6):
+             thetas[i] = math.degrees(thetas[i])
+        
+        
+        return thetas
         pass
 
     
