@@ -36,11 +36,11 @@ class MCKRobot:
     PoseTCP = []
     
     theta1 = math.radians(0)
-    theta2 = math.radians(45)
-    theta3 = math.radians(45)
+    theta2 = math.radians(0)
+    theta3 = math.radians(0+90)
     
     theta4 = math.radians(0)
-    theta5 = math.radians(-90)
+    theta5 = math.radians(0-90)
     theta6 = math.radians(0)
     
     currThetas = [theta1,theta2,theta3,theta4,theta5,theta6]
@@ -66,7 +66,7 @@ class MCKRobot:
     
     def __init__(self):
         self.InitRobot()
-        self._ks.UpdateIKOneToThreeJoints([50,0,50,0,0,1.75],True)
+        self._ks.UpdateIKOneToThreeJoints([50,0,50,0,0,0],True)
         pass 
         
     
