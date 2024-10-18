@@ -1,51 +1,21 @@
 import numpy as np
-import time
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 import math
 from KinematicSolver import KinematicSolver as KS
-
+from DHMatrix6Dof import DHMatrix6Dof as DHPara
 class MCKRobot:
     
-    
-    resolutionMoveL = 0.1 #0.1 mm
-    resolutionMovej = 0.1 #0.1 deg
-    
-    
-    #DH parameters
-    
-    # a is distance between the origin of frame n and n-1 along Xn
-    a = [0,50,0,0,0,0]
-    
-    # alpha is anangle from  Zn-1 to Zn along Xn
-    alphas = [math.radians(90),math.radians(0),math.radians(90),
-              math.radians(90),math.radians(90),math.radians(0)]
-    
-    # d is the distance from Xn-1 to Xn along the Zn-1 direction.
-    d = [50,0,0,50,0,0]
-    
-    # theta is anangle from  Xn-1 to Xn along Zn-1
-    theta1 = math.radians(0)
-    theta2 = math.radians(0)
-    theta3 = math.radians(90)
-    theta4 = math.radians(-180)
-    theta5 = math.radians(90)
-    theta6 = math.radians(0)
-    
-    thetas = [theta1,theta2,theta3,theta4,theta5,theta6]
+    #Load DH parameters
+    _a = DHPara.A
+    _alphas = DHPara.Alphas
+    _d = DHPara.D
+    _thetas = DHPara.Thetas
     
     # Joint angles and positions
-    J1,J2,J3,J4,J5,J6 = 0.0,0.0,0.0,0.0,0.0,0.0
+    # J1,J2,J3,J4,J5,J6 = 0.0,0.0,0.0,0.0,0.0,0.0
+    Joints = [0]*5
     
-    tmJointJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
-    tmBaseJioint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
-    
-    
-    Joints = [J1,J2,J3,J4,J5,J6]
-    
-    # CurrTCPPose = [85.355,0,85.355,180,0,0]
-
-    CurrTCPPose = [50,0,50,180,0,0]
+    _tmJointJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
+    _tmBaseJioint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     
     inputAngleDeg = [0,0,0,0,0,0]
     
@@ -56,7 +26,6 @@ class MCKRobot:
     pWristPos = np.array([0,0,0,1])
     pFlange = np.array([0,0,0,1])
     pTCPPos = np.array([0,0,0,1])
-    
     pJoints = [pBase,pShoulder,pElbow,pElbow2,pWristPos,pFlange,pTCPPos]
     
     pDispTCPOrig = np.array([0,0,0,1])
@@ -65,61 +34,41 @@ class MCKRobot:
     pDispTCPZ = np.array([0,0,0,1])
     pDispTCP = [pDispTCPOrig,pDispTCPX,pDispTCPY,pDispTCPZ]
     
-    _ks = KS(a,d,alphas,thetas)
+    _ks = None
 
-    
+    # change this for setting initial robot position
+    _initialTCPPose = [50,0,50,180,0,0]
+
     def __init__(self):
-        self.InitRobot()
-      
-        pass 
-        
-    
-    def InitRobot(self):
-        jointAngles = self._ks.UpdateIK(self.CurrTCPPose,True)
-        self.inputAngleDeg = jointAngles
-        
-        # self.inputAngleDeg = np.subtract(jointAngles ,self.thetas)
-        
-        # self.inputAngleDeg=[45,45,-90,0,0,0]
-        # self.inputAngleDeg=[0,0,-0,0,0,0]
-        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.inputAngleDeg, self.pJoints, self.pDispTCP)
-        self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self.CurrTCPPose)
-        # print(self.tmBaseJioint[5])
+        self._ks = KS(self._a,self._d,self._alphas,self._thetas)
+        jointAngles = self._ks.SolveIK(self._initialTCPPose,True)
+     
+        # self._ks.SolveFK(self._tmBaseJioint,self._tmJointJoint, jointAngles, self.pJoints, self.pDispTCP)
+
+        self._tmJointJoint, self._tmBaseJioint, self.pJoints, self.pDispTCP= self._ks.SolveFK( jointAngles )
+        self._ks.getTCPPoseFromTMBaseJoint(self._tmBaseJioint,self._initialTCPPose)
+        # print(self._tmBaseJioint[5])
         self.mapJointsToRobotp()
+       
          
     def JogRobot(self, step, poseIndex):
-        self.CurrTCPPose[poseIndex] = self.CurrTCPPose[poseIndex] +step
-        jointAngles = self._ks.UpdateIK(self.CurrTCPPose,True)
+        self._initialTCPPose[poseIndex] = self._initialTCPPose[poseIndex] +step
+        jointAngles = self._ks.SolveIK(self._initialTCPPose,True)
         self.inputAngleDeg = jointAngles
-        
-        # self.inputAngleDeg = np.subtract(jointAngles ,self.thetas)
-        
-        # self.inputAngleDeg=[0,45,-45,0,0,0]
-        # self.inputAngleDeg=[0,0,-0,0,0,0]
-        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.inputAngleDeg, self.pJoints, self.pDispTCP)
-        # self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self.CurrTCPPose)
-        # print(self.tmBaseJioint[5])
+
+        self._tmJointJoint,  self._tmBaseJioint,self.pJoints, self.pDispTCP = self._ks.SolveFK( self.inputAngleDeg)
+       
         self.mapJointsToRobotp()
     
     def moveLSingle(self, pFrom, pTo):
         
         self._ks.UpdateIKOneToThreeJoints(pTo,True)
-        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.currThetas, self.pJoints, self.pDispTCP)
+        self._ks.UpdateFK(self._tmBaseJioint,self._tmJointJoint, self.currThetas, self.pJoints, self.pDispTCP)
         self.mapJointsToRobotp()
-        pass 
-        
-    
-
-    
-    # def move(self,x,y,z):
-        
-    #     self._ks.UpdateIKOneToThreeJoints(x,y,z,True,self.thetas, self.alphas, self.a, self.d)
-    #     self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.thetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
-    #     self.mapJointsToRobotp()
         
     def JogJoint(self, index, step):
         self.currThetas[index] = self.currThetas[index] + math.radians(step)
-        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.currThetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
+        self._ks.UpdateFK(self._tmBaseJioint,self._tmJointJoint, self.currThetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
         self.mapJointsToRobotp()
 
     def mapJointsToRobotp(self):
