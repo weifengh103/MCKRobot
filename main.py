@@ -111,6 +111,9 @@ def main():
     z = 85.355
 
     # _rb.InitRobot()
+    # while  True:
+    #     # _rb.JogRobot(0,0)
+    #     MCKPlot()
 
  
     while True:
@@ -120,17 +123,17 @@ def main():
         for i in range(6):
             
             j = 0
-            for j in range(20):
+            for j in range(40):
                 MCKPlot()
                 if(i<3):
-                    _rb.JogRobot(0.4,i)
+                    _rb.JogRobot(1,i)
                 else:
                     _rb.JogRobot(1,i)
             j = 0
-            for j in range(20):
+            for j in range(40):
                 MCKPlot()
                 if(i<3):
-                    _rb.JogRobot(-0.4,i)
+                    _rb.JogRobot(-1,i)
                 else:
                     _rb.JogRobot(-1,i)
         

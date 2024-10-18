@@ -196,8 +196,8 @@ class KinematicSolver:
         
         
         # # update first FK for geting TM base to link3 end 
-        
-        self.updateAllTJointJointTrans(tmJointJoint,thetas)
+        degreethetas = np.degrees(thetas)
+        self.updateAllTJointJointTrans(tmJointJoint,degreethetas)
         self.updateAllTBaseJointTrans(tmBaseJioint,tmJointJoint)
         
         # rmBaseToLink2End = np.matmul(np.matmul(np.matmul(tmBaseJioint[0],tmBaseJioint[1]),tmBaseJioint[2]),tmBaseJioint[3])[:3,:3]
@@ -224,25 +224,42 @@ class KinematicSolver:
         #                 [0, 0, 1]])
         
         # rmBaseToLink2End = np.matmul(rmY,rmZ)
-        rmBaseToLink2End = Rotation.from_euler('XYZ', [0,  -yRotationAngle, zRotationAngle], degrees=False).as_matrix()
+
+        # rmBaseToLink2End = Rotation.from_euler('XYZ', [0,  -yRotationAngle, zRotationAngle], degrees=False).as_matrix()
+
+        
+        rmBaseToLink3End = tmBaseJioint[5][:3, :3]
+        rmLink3ToBaseEnd = np.linalg.inv(rmBaseToLink3End) 
+
  
+
+
+
+        rbLink3EndToFlange = np.matmul(rmLink3ToBaseEnd, rmBaseToFlange)
         
-        rmBaseToLink2EndInv = np.linalg.inv(rmBaseToLink2End) 
         
-        rbLink2EndToFlange = np.matmul(rmBaseToLink2EndInv, rmBaseToFlange)
-        
-        
-        r = Rotation.from_matrix(rbLink2EndToFlange)
+        r = Rotation.from_matrix(rbLink3EndToFlange)
+         
+
         angles =  r.as_euler('XYZ',degrees = False) 
         
         
         # thetas[2] = thetas[2]+ math.radians(90)
         #RZ J4
-        thetas[3] = angles[0] + math.radians(180)
+        # thetas[3] = angles[0] + math.radians(180)
+        # #RY J5
+        # thetas[4] = angles[1] 
+        # #RX J6
+        # thetas[5] = angles[2]
+
+        #         #RZ J4
+         #RZ J4
+        thetas[3] = angles[0] 
         #RY J5
         thetas[4] = angles[1] 
         #RX J6
         thetas[5] = angles[2]
+
         
         
         for i in range(6):

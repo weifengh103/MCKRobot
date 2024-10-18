@@ -43,9 +43,9 @@ class MCKRobot:
     
     Joints = [J1,J2,J3,J4,J5,J6]
     
-    CurrTCPPose = [85.355,0,85.355,180,0,0]
+    # CurrTCPPose = [85.355,0,85.355,180,0,0]
 
- 
+    CurrTCPPose = [50,0,50,180,0,0]
     
     inputAngleDeg = [0,0,0,0,0,0]
     
@@ -80,7 +80,7 @@ class MCKRobot:
         
         # self.inputAngleDeg = np.subtract(jointAngles ,self.thetas)
         
-        # self.inputAngleDeg=[0,45,-45,0,0,0]
+        # self.inputAngleDeg=[45,45,-90,0,0,0]
         # self.inputAngleDeg=[0,0,-0,0,0,0]
         self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.inputAngleDeg, self.pJoints, self.pDispTCP)
         self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self.CurrTCPPose)
