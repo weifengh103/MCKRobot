@@ -20,8 +20,8 @@ class KinematicSolver:
      
     # FK Section
     
-    def getDHTransMatrix(self,i,inputAngleDeg):
-        newTheta = self.thetas[i] + math.radians( inputAngleDeg[i])
+    def getDHTransMatrix(self,i,angelDeg):
+        newTheta = self.thetas[i] + math.radians( angelDeg[i])
 
         # See how nicely they are aligned :D
         dhMatrix = np.matrix([
@@ -33,8 +33,8 @@ class KinematicSolver:
         
         return dhMatrix
 
-    def updateAllTJointJointTrans(self,inputAngleDeg):
-        return [self.getDHTransMatrix(i,inputAngleDeg) for i in range(6)]
+    def updateAllTJointJointTrans(self,angelDeg):
+        return [self.getDHTransMatrix(i,angelDeg) for i in range(6)]
     
     def updateAllTBaseJointTrans(self,tmJointJoint):
          # Update first four base to joint transition matrix based on DH Matrix
@@ -89,24 +89,25 @@ class KinematicSolver:
         curTCPPose[3:] = eulerAngles.tolist()
         print(curTCPPose)
 
+
     def SolveIK(self,pose,elbowUp):
         
         tmJointJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
         tmBaseJioint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
         
-        thetas = [0,0,0,0,0,0]
+        angelsRad = [0,0,0,0,0,0]
         px = pose[0]
         py = pose[1]
         pz = pose[2]
 
         #project the next new x to current x' axis and get j1
         
-        thetas[0] = math.atan2(py,px)
+        angelsRad[0] = math.atan2(py,px)
         
         #  rotatedX is the same as the length of the arm on X axis 
         pxRotated = math.pow((py**2 + px**2),0.5) 
         
-        if(abs(thetas[0])>math.pi/2):
+        if(abs(angelsRad[0])>math.pi/2):
             pxRotated = -pxRotated
        
 
@@ -125,12 +126,12 @@ class KinematicSolver:
         
         # get j2
         if(elbowUp == True):
-            thetas[2] = - j3Abs
-            thetas[1] = math.atan(pzLocal/pxRotated) +  math.atan(self.d[3]*math.sin(j3Abs)/(self.a[1] + self.d[3]*math.cos(j3Abs)))
+            angelsRad[2] = - j3Abs
+            angelsRad[1] = math.atan(pzLocal/pxRotated) +  math.atan(self.d[3]*math.sin(j3Abs)/(self.a[1] + self.d[3]*math.cos(j3Abs)))
             
         else:
-            thetas[2] = j3Abs
-            thetas[1] = math.atan(pzLocal/pxRotated) -  math.atan(self.d[3]*math.sin(j3Abs)/(self.a[1] + self.d[3]*math.cos(j3Abs)))
+            angelsRad[2] = j3Abs
+            angelsRad[1] = math.atan(pzLocal/pxRotated) -  math.atan(self.d[3]*math.sin(j3Abs)/(self.a[1] + self.d[3]*math.cos(j3Abs)))
         
         
         # process for getting j4, j5 and j6 
@@ -144,9 +145,9 @@ class KinematicSolver:
     
         
         # # update first FK for geting TM base to link3 end 
-        degreethetas = np.degrees(thetas)
+        angelsDeg = np.degrees(angelsRad)
 
-        tmJointJoint = self.updateAllTJointJointTrans(degreethetas)
+        tmJointJoint = self.updateAllTJointJointTrans(angelsDeg)
         tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
         
         rmBaseToLink3End = tmBaseJioint[5][:3, :3]
@@ -159,16 +160,14 @@ class KinematicSolver:
         angles =  r.as_euler('XYZ',degrees = False) 
         
          #RZ J4
-        thetas[3] = angles[0] 
+        angelsRad[3] = angles[0] 
         #RY J5
-        thetas[4] = angles[1] 
+        angelsRad[4] = angles[1] 
         #RX J6
-        thetas[5] = angles[2]
+        angelsRad[5] = angles[2]
 
-        for i in range(6):
-             thetas[i] = math.degrees(thetas[i])
-        
-        return thetas
+
+        return np.degrees(angelsRad)
 
     
      
