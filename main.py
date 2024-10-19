@@ -6,7 +6,7 @@ def main():
     robotPlot = RP()
   
     while True:
-        for i in range(6):
+        for i in range(3,6):
             
             for j in range(40):
                 robotPlot.Plot(_robot)

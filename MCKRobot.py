@@ -20,7 +20,7 @@ class MCKRobot:
     tmBaseJioint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     
     #  
-    PosTCP = [0,0,0,0,0,0]
+    PoseTCP = [0,0,20,0,-180,0]
 
     pBase = np.array([0,0,0,1])
     pShoulder = np.array([0,0,0,1])
@@ -44,7 +44,7 @@ class MCKRobot:
 
     def __init__(self):
         self._ks = KS(self._a,self._d,self._alphas,self._thetas)
-        jointAngles = self._ks.SolveIK(self._initialTCPPose,True)
+        jointAngles = self._ks.SolveIK(self._initialTCPPose,self.PoseTCP,True)
      
         # self._ks.SolveFK(self.tmBaseJioint,self.tmJointJoint, jointAngles, self.pJoints, self.pDispTCP)
 
@@ -56,7 +56,7 @@ class MCKRobot:
          
     def JogRobot(self, step, poseIndex):
         self._initialTCPPose[poseIndex] = self._initialTCPPose[poseIndex] +step
-        jointAngles = self._ks.SolveIK(self._initialTCPPose,True)
+        jointAngles = self._ks.SolveIK(self._initialTCPPose,self.PoseTCP,True)
 
         self.tmJointJoint,  self.tmBaseJioint,self.pJoints, self.pDispTCP = self._ks.SolveFK(jointAngles)
        

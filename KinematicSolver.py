@@ -90,8 +90,15 @@ class KinematicSolver:
         print(curTCPPose)
 
 
-    def SolveIK(self,pose,elbowUp):
-        
+    def SolveIK(self,pose,TCP, elbowUp):
+
+        tmFlangeToTCP = self.PoseToTransformationMatrix(TCP)
+        tmTCPToFlange = np.linalg.inv(tmFlangeToTCP) 
+
+        tmBaseToPose = self.PoseToTransformationMatrix(pose)
+        tmBaseToFlange = np.matmul(tmBaseToPose,tmTCPToFlange)
+        pose = self.TransformationMatrixToPose(tmBaseToFlange)
+
         tmJointJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
         tmBaseJioint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
         
@@ -117,12 +124,8 @@ class KinematicSolver:
         # j2 and j3 calculation is absed on law of cosines and this geometric method https://www.roboticworx.io/p/how-to-calculate-inverse-kinematics
         
         # get j3
-        temp = 2*self.a[1]*self.d[3]
-        temp2 = self.a[1]**2 + self.d[3]**2 - pxRotated**2 - pzLocal**2
-        temp3 = temp2/temp
+   
         j3Abs =  math.pi - math.acos((self.a[1]**2 + self.d[3]**2 - pxRotated**2 - pzLocal**2)/(2*self.a[1]*self.d[3])) 
-        
-        j3AbsDeg = math.degrees(j3Abs)
         
         # get j2
         if(elbowUp == True):
@@ -133,6 +136,7 @@ class KinematicSolver:
             angelsRad[2] = j3Abs
             angelsRad[1] = math.atan(pzLocal/pxRotated) -  math.atan(self.d[3]*math.sin(j3Abs)/(self.a[1] + self.d[3]*math.cos(j3Abs)))
         
+   
         
         # process for getting j4, j5 and j6 
                 
@@ -169,5 +173,33 @@ class KinematicSolver:
 
         return np.degrees(angelsRad)
 
+    def PoseToTransformationMatrix(self,pose):
+        # Convert Euler angles (rx, ry, rz) from degrees to a rotation matrix
+        v = pose[-3:]
+        rm = Rotation.from_euler('xyz', pose[-3:], degrees=True).as_matrix()
+        tm = np.eye(4)   
+        tm[0:3, 0:3] = rm   
+        tm[0:3, 3] = [pose[0],pose[1],pose[2]]  
+
+        return tm
+    
+    def TransformationMatrixToPose(self,tm):
+        x = tm[0, 3]
+        y = tm[1, 3]
+        z = tm[2, 3]
+
+        # Extract the rotation matrix (3x3 top-left part of the transformation matrix)
+        rotation_matrix = tm[0:3, 0:3]
+
+        # Create a Rotation object from the rotation matrix
+        euler_angles = Rotation.from_matrix(rotation_matrix).as_euler('xyz', degrees=True)  
+
+        # Convert the rotation matrix to Euler angles in the XYZ order
+        # euler_angles = rotation.as_euler('xyz', degrees=True)  # Use degrees=False for radians
+
+        # Extract Euler angles
+        rx, ry, rz = euler_angles
+
+        return [x,y,z,rx,ry,rz]
     
      
