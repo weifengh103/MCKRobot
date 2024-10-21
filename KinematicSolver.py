@@ -90,24 +90,28 @@ class KinematicSolver:
         print(curTCPPose)
 
 
-    def SolveIK(self,pose,TCP, elbowUp):
+    def SolveIK(self,TCPPose,TCP, elbowUp):
 
         tmFlangeToTCP = self.PoseToTransformationMatrix(TCP)
         tmTCPToFlange = np.linalg.inv(tmFlangeToTCP) 
 
-        tmBaseToPose = self.PoseToTransformationMatrix(pose)
-        tmBaseToFlange = np.matmul(tmBaseToPose,tmTCPToFlange)
-        pose = self.TransformationMatrixToPose(tmBaseToFlange)
+        tmBaseToTCPPose = self.PoseToTransformationMatrix(TCPPose)
+        tmBaseToFlange = np.matmul(tmBaseToTCPPose,tmTCPToFlange)
+        TCPPose = self.TransformationMatrixToPose(tmBaseToFlange)
+
+
+ 
+
 
         tmJointJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
         tmBaseJioint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
         
         angelsRad = [0,0,0,0,0,0]
-        px = pose[0]
-        py = pose[1]
-        pz = pose[2]
+        px = TCPPose[0]
+        py = TCPPose[1]
+        pz = TCPPose[2]
 
-        #project the next new x to current x' axis and get j1
+        #project the next new x to current x' axis and b j1
         
         angelsRad[0] = math.atan2(py,px)
         
@@ -140,9 +144,9 @@ class KinematicSolver:
         
         # process for getting j4, j5 and j6 
                 
-        rX = math.radians(pose[3])
-        rY = math.radians(pose[4])
-        rZ = math.radians(pose[5])
+        rX = math.radians(TCPPose[3])
+        rY = math.radians(TCPPose[4])
+        rZ = math.radians(TCPPose[5])
         
         # get world rotation of flage
         rmBaseToFlange = Rotation.from_euler('XYZ', [rX, rY, rZ], degrees=False).as_matrix()
