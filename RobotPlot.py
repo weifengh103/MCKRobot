@@ -39,17 +39,34 @@ class RobotPlot:
         zLink6 = [_rb.pTCPPos[2],_rb.pFlange[2]]
 
         # get TCP display axis position
-        xTCPX = [_rb.pDispTCPOrig[0],_rb.pDispTCPX[0]]
-        yTCPX = [_rb.pDispTCPOrig[1],_rb.pDispTCPX[1]]
-        zTCPX = [_rb.pDispTCPOrig[2],_rb.pDispTCPX[2]]
+        # xTCPX = [_rb.pDispTCPOrig[0],_rb.pDispTCPX[0]]
+        # yTCPX = [_rb.pDispTCPOrig[1],_rb.pDispTCPX[1]]
+        # zTCPX = [_rb.pDispTCPOrig[2],_rb.pDispTCPX[2]]
         
-        xTCPY = [_rb.pDispTCPOrig[0],_rb.pDispTCPY[0]]
-        yTCPY = [_rb.pDispTCPOrig[1],_rb.pDispTCPY[1]]
-        zTCPY = [_rb.pDispTCPOrig[2],_rb.pDispTCPY[2]]
+        # xTCPY = [_rb.pDispTCPOrig[0],_rb.pDispTCPY[0]]
+        # yTCPY = [_rb.pDispTCPOrig[1],_rb.pDispTCPY[1]]
+        # zTCPY = [_rb.pDispTCPOrig[2],_rb.pDispTCPY[2]]
         
-        xTCPZ = [_rb.pDispTCPOrig[0],_rb.pDispTCPZ[0]]
-        yTCPZ = [_rb.pDispTCPOrig[1],_rb.pDispTCPZ[1]]
-        zTCPZ = [_rb.pDispTCPOrig[2],_rb.pDispTCPZ[2]]
+        # xTCPZ = [_rb.pDispTCPOrig[0],_rb.pDispTCPZ[0]]
+        # yTCPZ = [_rb.pDispTCPOrig[1],_rb.pDispTCPZ[1]]
+        # zTCPZ = [_rb.pDispTCPOrig[2],_rb.pDispTCPZ[2]]
+
+
+      
+        xTCPX = [_rb.pDispTCP[0][0],_rb.pDispTCP[1][0]]
+        yTCPX = [_rb.pDispTCP[0][1],_rb.pDispTCP[1][1]]
+        zTCPX = [_rb.pDispTCP[0][2],_rb.pDispTCP[1][2]]
+
+        xTCPY = [_rb.pDispTCP[0][0],_rb.pDispTCP[2][0]]
+        yTCPY = [_rb.pDispTCP[0][1],_rb.pDispTCP[2][1]]
+        zTCPY = [_rb.pDispTCP[0][2],_rb.pDispTCP[2][2]]
+
+
+        xTCPZ = [_rb.pDispTCP[0][0],_rb.pDispTCP[3][0]]
+        yTCPZ = [_rb.pDispTCP[0][1],_rb.pDispTCP[3][1]]
+        zTCPZ = [_rb.pDispTCP[0][2],_rb.pDispTCP[3][2]]
+
+
         
 
         # clear graph and plot all 

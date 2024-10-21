@@ -99,15 +99,15 @@ class KinematicSolver:
 
         tmBaseTCP = self.PoseToTransformationMatrix(TCPPose)
         tmBaseFlange = np.matmul(tmBaseTCP,tmTCPFlange)
-        TCPPose = self.TransformationMatrixToPose(tmBaseFlange)
+        BaseFlangePose = self.TransformationMatrixToPose(tmBaseFlange)
 
         tmJointJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
         tmBaseJioint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
         
         angelsRad = [0,0,0,0,0,0]
-        px = TCPPose[0]
-        py = TCPPose[1]
-        pz = TCPPose[2]
+        px = BaseFlangePose[0]
+        py = BaseFlangePose[1]
+        pz = BaseFlangePose[2]
 
         #project the next new x to current x' axis and b j1
         
@@ -140,9 +140,9 @@ class KinematicSolver:
         
         # process for getting j4, j5 and j6 
                 
-        rX = math.radians(TCPPose[3])
-        rY = math.radians(TCPPose[4])
-        rZ = math.radians(TCPPose[5])
+        rX = math.radians(BaseFlangePose[3])
+        rY = math.radians(BaseFlangePose[4])
+        rZ = math.radians(BaseFlangePose[5])
         
         # get world rotation of flage
         rmBaseToFlange = Rotation.from_euler('XYZ', [rX, rY, rZ], degrees=False).as_matrix()
@@ -163,36 +163,44 @@ class KinematicSolver:
 
         angles =  r.as_euler('XYZ',degrees = False) 
         
-         #RZ J4
+        #RZ J4
         angelsRad[3] = angles[0] 
         #RY J5
         angelsRad[4] = angles[1] 
         #RX J6
         angelsRad[5] = angles[2]
 
-        return np.degrees(angelsRad),tmBaseTCP
+        return np.degrees(angelsRad)
 
-    def SolveFK(self,currAngleDeg, tmBaseTCP):
-        pJoints = [np.array([0, 0, 0, 1]) for _ in range(7)]    
-        pDispTCP = [np.array([0, 0, 0, 1]) for _ in range(4)]
+    # def SolveFK(self,currAngleDeg,TCP):
+    #     pJoints = [np.array([0, 0, 0, 1]) for _ in range(7)]    
+    #     pDispTCP = [np.array([0, 0, 0, 1]) for _ in range(4)]
 
+    #     tmJointJoint = self.updateAllTJointJointTrans(currAngleDeg)
+    #     tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
+
+    #     pJoints[1] = np.matmul(tmBaseJioint[0] , pJoints[0]).A1
+    #     pJoints[2] = np.matmul(tmBaseJioint[1] , pJoints[0]).A1
+    #     pJoints[3] = np.matmul(tmBaseJioint[2] , pJoints[0]).A1
+    #     pJoints[4] = np.matmul(tmBaseJioint[3] , pJoints[0]).A1
+    #     pJoints[5] = np.matmul(tmBaseJioint[4] , pJoints[0]).A1
+    #     pJoints[6] = np.matmul(tmBaseJioint[5] , pJoints[0]).A1
+
+    #     tmBaseFlange = tmBaseJioint[5]
+    #     tmBaseTCP = np.matmul(tmBaseFlange,self.PoseToTransformationMatrix(TCP))
+    #     dispTCPAxisLength = 20
+
+    #     pDispTCP[0] = np.matmul(tmBaseTCP , [0,0,0,1])
+    #     pDispTCP[1] = np.matmul(tmBaseTCP , [dispTCPAxisLength,0,0,1])
+    #     pDispTCP[2] = np.matmul(tmBaseTCP , [0,dispTCPAxisLength,0,1])
+    #     pDispTCP[3] = np.matmul(tmBaseTCP , [0,0,dispTCPAxisLength,1])
+
+    #     return tmJointJoint, tmBaseJioint, pJoints,pDispTCP
+    
+    def SolveFK(self,currAngleDeg,TCP):
         tmJointJoint = self.updateAllTJointJointTrans(currAngleDeg)
         tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
+        tmBaseFlange = tmBaseJioint[5]
+        tmBaseTCP = np.matmul(tmBaseFlange,self.PoseToTransformationMatrix(TCP))
 
-        pJoints[1] = np.matmul(tmBaseJioint[0] , pJoints[0]).A1
-        pJoints[2] = np.matmul(tmBaseJioint[1] , pJoints[0]).A1
-        pJoints[3] = np.matmul(tmBaseJioint[2] , pJoints[0]).A1
-        pJoints[4] = np.matmul(tmBaseJioint[3] , pJoints[0]).A1
-        pJoints[5] = np.matmul(tmBaseJioint[4] , pJoints[0]).A1
-        pJoints[6] = np.matmul(tmBaseJioint[5] , pJoints[0]).A1
-
-
-
-        dispTCPAxisLength = 20
-
-        pDispTCP[0] = np.matmul(tmBaseTCP , [0,0,0,1])
-        pDispTCP[1] = np.matmul(tmBaseTCP , [dispTCPAxisLength,0,0,1])
-        pDispTCP[2] = np.matmul(tmBaseTCP , [0,dispTCPAxisLength,0,1])
-        pDispTCP[3] = np.matmul(tmBaseTCP , [0,0,dispTCPAxisLength,1])
-
-        return tmJointJoint, tmBaseJioint, pJoints,pDispTCP
+        return tmJointJoint, tmBaseJioint, tmBaseFlange, tmBaseTCP
