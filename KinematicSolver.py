@@ -46,32 +46,6 @@ class KinematicSolver:
                 tmBaseJioint[i] = np.matmul(tmBaseJioint[i-1] , tmJointJoint[i])
         return tmBaseJioint
                 
-    def SolveFK(self,currAngleDeg):
-        pJoints = [np.array([0, 0, 0, 1]) for _ in range(7)]
-        pDispTCP = [np.array([0, 0, 0, 1]) for _ in range(4)]
-
-        tmJointJoint = self.updateAllTJointJointTrans(currAngleDeg)
-        tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
-
-        pJoints[1] = np.matmul(tmBaseJioint[0] , pJoints[0]).A1
-        pJoints[2] = np.matmul(tmBaseJioint[1] , pJoints[0]).A1
-        pJoints[3] = np.matmul(tmBaseJioint[2] , pJoints[0]).A1
-        pJoints[4] = np.matmul(tmBaseJioint[3] , pJoints[0]).A1
-        pJoints[5] = np.matmul(tmBaseJioint[4] , pJoints[0]).A1
-        pJoints[6] = np.matmul(tmBaseJioint[5] , pJoints[0]).A1
-
-        dispTCPAxisLength = 20
-        dispTMIndex = 5
-
-        pDispTCP[0] = np.matmul(tmBaseJioint[dispTMIndex] , [0,0,0,1]).A1
-        pDispTCP[1] = np.matmul(tmBaseJioint[dispTMIndex] , [dispTCPAxisLength,0,0,1]).A1
-        pDispTCP[2] = np.matmul(tmBaseJioint[dispTMIndex] , [0,dispTCPAxisLength,0,1]).A1
-        pDispTCP[3] = np.matmul(tmBaseJioint[dispTMIndex] , [0,0,dispTCPAxisLength,1]).A1
-        
-        return tmJointJoint, tmBaseJioint, pJoints,pDispTCP
-        
-      
- 
     def getTCPPoseFromTMBaseJoint(self,tmBaseJoint,curTCPPose):
         
         # # Treat joint 4 -6 as a sphere joint with  3 rotational degree. Calculate base on rotation sequence x'→y'→z' 
@@ -89,19 +63,43 @@ class KinematicSolver:
         curTCPPose[3:] = eulerAngles.tolist()
         print(curTCPPose)
 
+    def PoseToTransformationMatrix(self,pose):
+        # Convert Euler angles (rx, ry, rz) from degrees to a rotation matrix
+        v = pose[-3:]
+        rm = Rotation.from_euler('xyz', pose[-3:], degrees=True).as_matrix()
+        tm = np.eye(4)   
+        tm[0:3, 0:3] = rm   
+        tm[0:3, 3] = [pose[0],pose[1],pose[2]]  
 
+        return tm
+    
+    def TransformationMatrixToPose(self,tm):
+        x = tm[0, 3]
+        y = tm[1, 3]
+        z = tm[2, 3]
+
+        # Extract the rotation matrix (3x3 top-left part of the transformation matrix)
+        rotation_matrix = tm[0:3, 0:3]
+
+        # Create a Rotation object from the rotation matrix
+        euler_angles = Rotation.from_matrix(rotation_matrix).as_euler('xyz', degrees=True)  
+
+        # Convert the rotation matrix to Euler angles in the XYZ order
+        # euler_angles = rotation.as_euler('xyz', degrees=True)  # Use degrees=False for radians
+
+        # Extract Euler angles
+        rx, ry, rz = euler_angles
+
+        return [x,y,z,rx,ry,rz]
+    
     def SolveIK(self,TCPPose,TCP, elbowUp):
 
-        tmFlangeToTCP = self.PoseToTransformationMatrix(TCP)
-        tmTCPToFlange = np.linalg.inv(tmFlangeToTCP) 
+        tmFlangeTCP = self.PoseToTransformationMatrix(TCP)
+        tmTCPFlange = np.linalg.inv(tmFlangeTCP) 
 
-        tmBaseToTCPPose = self.PoseToTransformationMatrix(TCPPose)
-        tmBaseToFlange = np.matmul(tmBaseToTCPPose,tmTCPToFlange)
-        TCPPose = self.TransformationMatrixToPose(tmBaseToFlange)
-
-
- 
-
+        tmBaseTCP = self.PoseToTransformationMatrix(TCPPose)
+        tmBaseFlange = np.matmul(tmBaseTCP,tmTCPFlange)
+        TCPPose = self.TransformationMatrixToPose(tmBaseFlange)
 
         tmJointJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
         tmBaseJioint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
@@ -140,8 +138,6 @@ class KinematicSolver:
             angelsRad[2] = j3Abs
             angelsRad[1] = math.atan(pzLocal/pxRotated) -  math.atan(self.d[3]*math.sin(j3Abs)/(self.a[1] + self.d[3]*math.cos(j3Abs)))
         
-   
-        
         # process for getting j4, j5 and j6 
                 
         rX = math.radians(TCPPose[3])
@@ -174,36 +170,29 @@ class KinematicSolver:
         #RX J6
         angelsRad[5] = angles[2]
 
+        return np.degrees(angelsRad),tmBaseTCP
 
-        return np.degrees(angelsRad)
+    def SolveFK(self,currAngleDeg, tmBaseTCP):
+        pJoints = [np.array([0, 0, 0, 1]) for _ in range(7)]    
+        pDispTCP = [np.array([0, 0, 0, 1]) for _ in range(4)]
 
-    def PoseToTransformationMatrix(self,pose):
-        # Convert Euler angles (rx, ry, rz) from degrees to a rotation matrix
-        v = pose[-3:]
-        rm = Rotation.from_euler('xyz', pose[-3:], degrees=True).as_matrix()
-        tm = np.eye(4)   
-        tm[0:3, 0:3] = rm   
-        tm[0:3, 3] = [pose[0],pose[1],pose[2]]  
+        tmJointJoint = self.updateAllTJointJointTrans(currAngleDeg)
+        tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
 
-        return tm
-    
-    def TransformationMatrixToPose(self,tm):
-        x = tm[0, 3]
-        y = tm[1, 3]
-        z = tm[2, 3]
+        pJoints[1] = np.matmul(tmBaseJioint[0] , pJoints[0]).A1
+        pJoints[2] = np.matmul(tmBaseJioint[1] , pJoints[0]).A1
+        pJoints[3] = np.matmul(tmBaseJioint[2] , pJoints[0]).A1
+        pJoints[4] = np.matmul(tmBaseJioint[3] , pJoints[0]).A1
+        pJoints[5] = np.matmul(tmBaseJioint[4] , pJoints[0]).A1
+        pJoints[6] = np.matmul(tmBaseJioint[5] , pJoints[0]).A1
 
-        # Extract the rotation matrix (3x3 top-left part of the transformation matrix)
-        rotation_matrix = tm[0:3, 0:3]
 
-        # Create a Rotation object from the rotation matrix
-        euler_angles = Rotation.from_matrix(rotation_matrix).as_euler('xyz', degrees=True)  
 
-        # Convert the rotation matrix to Euler angles in the XYZ order
-        # euler_angles = rotation.as_euler('xyz', degrees=True)  # Use degrees=False for radians
+        dispTCPAxisLength = 20
 
-        # Extract Euler angles
-        rx, ry, rz = euler_angles
+        pDispTCP[0] = np.matmul(tmBaseTCP , [0,0,0,1])
+        pDispTCP[1] = np.matmul(tmBaseTCP , [dispTCPAxisLength,0,0,1])
+        pDispTCP[2] = np.matmul(tmBaseTCP , [0,dispTCPAxisLength,0,1])
+        pDispTCP[3] = np.matmul(tmBaseTCP , [0,0,dispTCPAxisLength,1])
 
-        return [x,y,z,rx,ry,rz]
-    
-     
+        return tmJointJoint, tmBaseJioint, pJoints,pDispTCP
