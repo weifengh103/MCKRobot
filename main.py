@@ -6,10 +6,9 @@ def main():
     robotPlot = RP()
    
     while True:
-        # robotPlot.PlotJointPost(_robot,3)
-        robotPlot.Plot(_robot)
-        _robot.JogJoint(0,0)
-        continue
+        # robotPlot.PlotJointPost(_robot,2)
+        # _robot.JogJoint(0,0)
+        # continue
         # for i in range(0,6):
         for i in range(3,6):
             dist = 20

@@ -51,7 +51,7 @@ class MCKRobot:
     def JogRobot(self, step, poseIndex):
 
         # self._initialTCPPose[poseIndex] = self._initialTCPPose[poseIndex] +step
-        self._initialTCPPose[3] = 45
+        # self._initialTCPPose[3] = 45
         jointAngles = self._ks.SolveIK(self._initialTCPPose,self.TCP,True)
         self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(jointAngles,self.TCP)
         self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)

@@ -154,27 +154,31 @@ class KinematicSolver:
         # tmJointJoint = self.updateAllTJointJointTrans(angelsDeg)
         # tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
         
-        yRotationRad = np.pi - angelsRad[1] +angelsRad[2]
+        yRotationRad = -angelsRad[1]-angelsRad[2] + np.pi/2
         zRotationRad = angelsRad[0] 
 
-        rmBaseToLink3End  =    Rotation.from_euler('XYZ',[0,yRotationRad,zRotationRad ],degrees= True).as_matrix()
+        rmBaseToLink3End  =    Rotation.from_euler('XYZ',[0,yRotationRad,zRotationRad ],degrees= False).as_matrix()
+        anglesLink3End =  Rotation.from_matrix(rmBaseToLink3End).as_euler('XYZ',degrees = True)  
 
 
 
-        # rmLink3ToBaseEnd = np.linalg.inv(rmBaseToLink3End) 
 
-        # rbLink3EndToFlange = np.matmul(rmLink3ToBaseEnd, rmBaseToFlange)
+        rmLink3EndToBase = np.linalg.inv(rmBaseToLink3End) 
+
+        rmLink3EndToFlange = np.matmul(rmLink3EndToBase, rmBaseToFlange)
         
-        # r = Rotation.from_matrix(rbLink3EndToFlange)
+        angles = Rotation.from_matrix(rmLink3EndToFlange).as_euler('XYZ',degrees = False)
 
-        # angles =  r.as_euler('XYZ',degrees = False) 
         
-        # #RZ J4
-        # angelsRad[3] = angles[0] 
-        # #RY J5
-        # angelsRad[4] = angles[1] 
-        # #RX J6
-        # angelsRad[5] = angles[2]
+        
+        # # # #RZ J4
+        angelsRad[3] = angles[0] 
+        #RY J5
+        angelsRad[4] =- angles[1] 
+        #RX J6
+        angelsRad[5] =- angles[2]
+
+        anglesDeg = np.degrees( angelsRad )
 
         return np.degrees(angelsRad)
 
@@ -206,7 +210,7 @@ class KinematicSolver:
     def SolveFK(self,currAngleDeg,TCP):
         tmJointJoint = self.updateAllTJointJointTrans(currAngleDeg)
         tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
-        tmBaseFlange = tmBaseJioint[5]
+        tmBaseFlange = tmBaseJioint[4]
         tmBaseTCP = np.matmul(tmBaseFlange,self.PoseToTransformationMatrix(TCP))
 
         return tmJointJoint, tmBaseJioint, tmBaseFlange, tmBaseTCP
