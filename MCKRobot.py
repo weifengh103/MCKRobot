@@ -14,7 +14,7 @@ class MCKRobot:
     
     # Joint angles and positions
     # J1,J2,J3,J4,J5,J6 = 0.0,0.0,0.0,0.0,0.0,0.0
-    Joints = [0]*5
+    Joints = [0]*6
     
     tmJointJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     tmBaseJioint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
@@ -50,7 +50,8 @@ class MCKRobot:
          
     def JogRobot(self, step, poseIndex):
 
-        self._initialTCPPose[poseIndex] = self._initialTCPPose[poseIndex] +step
+        # self._initialTCPPose[poseIndex] = self._initialTCPPose[poseIndex] +step
+        self._initialTCPPose[3] = 45
         jointAngles = self._ks.SolveIK(self._initialTCPPose,self.TCP,True)
         self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(jointAngles,self.TCP)
         self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
@@ -81,9 +82,10 @@ class MCKRobot:
     
     def JogJoint(self, index, step):
 
-        self.currThetas[index] = self.currThetas[index] + math.radians(step)
-        self._ks.UpdateFK(self.tmBaseJioint,self.tmJointJoint, self.currThetas, self.alphas, self.a, self.d, self.pJoints, self.pDispTCP)
-        self.UpdateRobotStatus()
+        # self.currThetas[index] = self.currThetas[index] + math.radians(step)
+        self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(self.Joints,self.TCP)
+
+        self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
 
     # def UpdateRobotStatus(self):
         

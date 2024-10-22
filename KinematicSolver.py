@@ -149,26 +149,32 @@ class KinematicSolver:
     
         
         # # update first FK for geting TM base to link3 end 
-        angelsDeg = np.degrees(angelsRad)
+    
 
-        tmJointJoint = self.updateAllTJointJointTrans(angelsDeg)
-        tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
+        # tmJointJoint = self.updateAllTJointJointTrans(angelsDeg)
+        # tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
         
-        rmBaseToLink3End = tmBaseJioint[5][:3, :3]
-        rmLink3ToBaseEnd = np.linalg.inv(rmBaseToLink3End) 
+        yRotationRad = np.pi - angelsRad[1] +angelsRad[2]
+        zRotationRad = angelsRad[0] 
 
-        rbLink3EndToFlange = np.matmul(rmLink3ToBaseEnd, rmBaseToFlange)
-        
-        r = Rotation.from_matrix(rbLink3EndToFlange)
+        rmBaseToLink3End  =    Rotation.from_euler('XYZ',[0,yRotationRad,zRotationRad ],degrees= True).as_matrix()
 
-        angles =  r.as_euler('XYZ',degrees = False) 
+
+
+        # rmLink3ToBaseEnd = np.linalg.inv(rmBaseToLink3End) 
+
+        # rbLink3EndToFlange = np.matmul(rmLink3ToBaseEnd, rmBaseToFlange)
         
-        #RZ J4
-        angelsRad[3] = angles[0] 
-        #RY J5
-        angelsRad[4] = angles[1] 
-        #RX J6
-        angelsRad[5] = angles[2]
+        # r = Rotation.from_matrix(rbLink3EndToFlange)
+
+        # angles =  r.as_euler('XYZ',degrees = False) 
+        
+        # #RZ J4
+        # angelsRad[3] = angles[0] 
+        # #RY J5
+        # angelsRad[4] = angles[1] 
+        # #RX J6
+        # angelsRad[5] = angles[2]
 
         return np.degrees(angelsRad)
 
