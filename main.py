@@ -5,25 +5,27 @@ def main():
     _robot = Robot()
     robotPlot = RP()
    
+    # while True:
+    #     _robot.JogRobot(1,3)
+    #     robotPlot.PlotJointPost(_robot,5)
+    #     continue
+
     while True:
-        # robotPlot.PlotJointPost(_robot,2)
-        # _robot.JogJoint(0,0)
-        # continue
-        # for i in range(0,6):
-        for i in range(3,6):
-            dist = 20
-            for j in range(dist):
-                robotPlot.Plot(_robot)
-                _robot.JogRobot(2,i)
+        for i in range(0,6):
+            
+            for j in range(8):
+                _robot.JogRobot(5,i)
+                robotPlot.PlotJointPost(_robot,5)
                 formatted_position = f"Robot Position (x, y, z, rx, ry, rz): ({_robot.PosRobot[0]:.2f}, {_robot.PosRobot[1]:.2f}, {_robot.PosRobot[2]:.2f},{_robot.PosRobot[3]:.2f}, {_robot.PosRobot[4]:.2f}, {_robot.PosRobot[5]:.2f})"
                 print(formatted_position)
-
-            for j in range(dist):
-                robotPlot.Plot(_robot)
-                _robot.JogRobot(-2,i)
+            for j in range(8):
+          
+      
+                _robot.JogRobot(-5,i)
+                robotPlot.PlotJointPost(_robot,5)
                 formatted_position = f"Robot Position (x, y, z, rx, ry, rz): ({_robot.PosRobot[0]:.2f}, {_robot.PosRobot[1]:.2f}, {_robot.PosRobot[2]:.2f},{_robot.PosRobot[3]:.2f}, {_robot.PosRobot[4]:.2f}, {_robot.PosRobot[5]:.2f})"
                 print(formatted_position)
-
+ 
 
 
 

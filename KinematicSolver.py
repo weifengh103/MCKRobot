@@ -146,39 +146,26 @@ class KinematicSolver:
         
         # get world rotation of flage
         rmBaseToFlange = Rotation.from_euler('XYZ', [rX, rY, rZ], degrees=False).as_matrix()
-    
+        angelsDeg = np.degrees(angelsRad)
+
+        tmJointJoint = self.updateAllTJointJointTrans(angelsDeg)
+        tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
+
+        rmBaseToLink3End = tmBaseJioint[5][:3, :3]
+        rmLink3ToBaseEnd = np.linalg.inv(rmBaseToLink3End) 
         
-        # # update first FK for geting TM base to link3 end 
-    
-
-        # tmJointJoint = self.updateAllTJointJointTrans(angelsDeg)
-        # tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
+        rbLink3EndToFlange = np.matmul(rmLink3ToBaseEnd, rmBaseToFlange)
         
-        yRotationRad = -angelsRad[1]-angelsRad[2] + np.pi/2
-        zRotationRad = angelsRad[0] 
+        r = Rotation.from_matrix(rbLink3EndToFlange)
 
-        rmBaseToLink3End  =    Rotation.from_euler('XYZ',[0,yRotationRad,zRotationRad ],degrees= False).as_matrix()
-        anglesLink3End =  Rotation.from_matrix(rmBaseToLink3End).as_euler('XYZ',degrees = True)  
-
-
-
-
-        rmLink3EndToBase = np.linalg.inv(rmBaseToLink3End) 
-
-        rmLink3EndToFlange = np.matmul(rmLink3EndToBase, rmBaseToFlange)
+        angles =  r.as_euler('XYZ',degrees = False) 
         
-        angles = Rotation.from_matrix(rmLink3EndToFlange).as_euler('XYZ',degrees = False)
-
-        
-        
-        # # # #RZ J4
+         #RZ J4
         angelsRad[3] = angles[0] 
         #RY J5
-        angelsRad[4] =- angles[1] 
+        angelsRad[4] = angles[1] 
         #RX J6
-        angelsRad[5] =- angles[2]
-
-        anglesDeg = np.degrees( angelsRad )
+        angelsRad[5] = angles[2]
 
         return np.degrees(angelsRad)
 
