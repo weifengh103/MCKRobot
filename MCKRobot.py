@@ -21,7 +21,7 @@ class MCKRobot:
     tmBaseFlange = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     #  
     # TCP = [0,0,20,0,0,20]
-    TCP = [20,0,0,0,0,0]
+    TCP = [20,20,0,45,0,0]
 
     pBase = np.array([0,0,0,1])
     pShoulder = np.array([0,0,0,1])
@@ -46,7 +46,6 @@ class MCKRobot:
         self._ks = KS(self._a,self._d,self._alphas,self._thetas)
         jointAngles = self._ks.SolveIK(self._initialTCPPose,True)
         self.tmJointJoint, self.tmBaseJioint, self.tmBaseFlange, self.tmBaseTCP= self._ks.SolveFK( jointAngles,self.TCP)
-        # self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self._initialTCPPose)
         self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
          
 
@@ -64,8 +63,8 @@ class MCKRobot:
         flangeBaseRad = np.deg2rad(flangeBase)
         jointAngles = self._ks.SolveIK(flangeBase,True)
         self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(jointAngles,self.TCP)
-        baseFlange= self._ks.TransformationMatrixToPose(self.tmBaseFlange)
-        BaseTCP= self._ks.TransformationMatrixToPose(self.tmBaseTCP)
+        baseFlange= self._ks.TransformationMatrixToPose(self.tmBaseFlange, True)
+        BaseTCP= self._ks.TransformationMatrixToPose(self.tmBaseTCP, True)
         self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
     # def JogRobot(self, step, poseIndex):
 
@@ -82,7 +81,7 @@ class MCKRobot:
 
         tmIP = self._ks.PoseToTransformationMatrix(self._initialTCPPose)
 
-        targetPose = self._ks.TransformationMatrixToPose(np.matmul(tmIP,tmTCPLocalOffset))
+        targetPose = self._ks.TransformationMatrixToPose(np.matmul(tmIP,tmTCPLocalOffset),True)
 
         jointAngles = self._ks.SolveIK(targetPose,self.TCP,True)
         self.tmJointJoint,  self.tmBaseJioint,self.pJoints= self._ks.SolveFK(jointAngles)
@@ -148,7 +147,7 @@ class MCKRobot:
         self.pDispTCP[2] = np.matmul(tmBaseTCP , [0,dispTCPAxisLength,0,1]).A1
         self.pDispTCP[3] = np.matmul(tmBaseTCP , [0,0,dispTCPAxisLength,1]).A1
 
-        self.PosRobot = (self._ks.TransformationMatrixToPose(tmBaseTCP))
+        self.PosRobot = self._ks.TransformationMatrixToPose(tmBaseTCP,True)
         
 
     

@@ -46,34 +46,22 @@ class KinematicSolver:
                 tmBaseJioint[i] = np.matmul(tmBaseJioint[i-1] , tmJointJoint[i])
         return tmBaseJioint
                 
-    def getTCPPoseFromTMBaseJoint(self,tmBaseJoint,curTCPPose):
-        
-        # # Treat joint 4 -6 as a sphere joint with  3 rotational degree. Calculate base on rotation sequence x'→y'→z' 
-        # # Reference: https://www.mecademic.com/academic_articles/space-orientation-euler-angles/
-    
-        translationTCP = tmBaseJoint[5][:3, 3].A1
 
-        rmTCP =  tmBaseJoint[5] [:3, :3]
-        r =  Rotation.from_matrix(rmTCP)
-        eulerAngles = r.as_euler("xyz",degrees=True)
 
-        #### Modify the angles
-        # curTCPPose = (translationTCP.tolist() + eulerAngles.tolist())
-        curTCPPose[:3] = translationTCP.tolist()
-        curTCPPose[3:] = eulerAngles.tolist()
-        print(curTCPPose)
-
-    def PoseToTransformationMatrix(self,pose):
+    def PoseToTransformationMatrix(self,pose,isExtrinsic):
         # Convert Euler angles (rx, ry, rz) from degrees to a rotation matrix
         v = pose[-3:]
-        rm = Rotation.from_euler('xyz', pose[-3:], degrees=True).as_matrix()
+        if isExtrinsic:
+            rm = Rotation.from_euler('xyz', pose[-3:], degrees=True).as_matrix()
+        else: 
+            rm = Rotation.from_euler('XYZ', pose[-3:], degrees=True).as_matrix()
         tm = np.eye(4)   
         tm[0:3, 0:3] = rm   
         tm[0:3, 3] = [pose[0],pose[1],pose[2]]  
 
         return tm
     
-    def TransformationMatrixToPose(self,tm):
+    def TransformationMatrixToPose(self,tm,isExtrinsic):
         x = tm[0, 3]
         y = tm[1, 3]
         z = tm[2, 3]
@@ -82,9 +70,12 @@ class KinematicSolver:
         rotation_matrix = tm[0:3, 0:3]
 
         # Create a Rotation object from the rotation matrix
-        euler_angles = Rotation.from_matrix(rotation_matrix).as_euler('xyz', degrees=True)  
+        if isExtrinsic:
+            euler_angles = Rotation.from_matrix(rotation_matrix).as_euler('xyz', degrees=True)  
+        else:
+            euler_angles = Rotation.from_matrix(rotation_matrix).as_euler('XYZ', degrees=True)  
 
-        # Convert the rotation matrix to Euler angles in the XYZ order
+        # Convert the rotation matrix to Euler angles in the xyz order
         # euler_angles = rotation.as_euler('xyz', degrees=True)  # Use degrees=False for radians
 
         # Extract Euler angles
@@ -92,42 +83,20 @@ class KinematicSolver:
 
         return [x,y,z,rx,ry,rz]
     
-    # def GetFlangeBase(self,pose,TCP):
-    #     # tmBaseTCP = self.PoseToTransformationMatrix(pose)
-    #     # tmFlangeTCP = self.PoseToTransformationMatrix(TCP)
-    #     # tmTCPFlange = np.linalg.inv(tmFlangeTCP)
-    #     # tmBaseFlange = np.matmul(tmBaseTCP,tmTCPFlange)
-    #     # baseFlage = self.TransformationMatrixToPose(tmBaseFlange)
-    #     # return baseFlage
-    #     pose
-    #     tmBaseTCP = self.PoseToTransformationMatrix(pose)
-        
-    #     tmTCP = self.PoseToTransformationMatrix(TCP)
-
-    #     tmTCPInv = np.linalg.inv(tmTCP)
-    #     TCPInv = self.TransformationMatrixToPose(tmTCPInv)
-    #     tmTransTCP = np.matmul(tmTCPInv,tmBaseTCP)
-
-
-        
-    #     unit  = np.identity(4)
-    #     tmtest = np.matmul(unit,tmBaseTCP)
-    #     tmBaseFlange = np.matmul(tmTCPInv,tmBaseTCP)
-    #     baseFlage = self.TransformationMatrixToPose(tmBaseFlange)
-    #     return baseFlage
-    
+  
     def GetFlangeBase(self,pose,TCP):
         # pose = [50,0,50,0,0,45]
 
-        tmBaseTCP = self.PoseToTransformationMatrix(pose)
-        tmTCP = self.PoseToTransformationMatrix(TCP)
+        tmBaseTCP = self.PoseToTransformationMatrix(pose, True)
+        tmTCP = self.PoseToTransformationMatrix(TCP,True)
 
         tmTCPInv = np.linalg.inv(tmTCP)
       
 
-        #below        np.matmul(tmBaseTCP,tmTCPInv) give CORRCETY XYZ rotation when RX RY RZ are zero
+        #below        np.matmul(tmBaseTCP,tmTCPInv) give CORRCETY xyz rotation when RX RY RZ are zero
         tmBaseFlange = np.matmul(tmBaseTCP,tmTCPInv)
-        baseFlage = self.TransformationMatrixToPose(tmBaseFlange)
+        
+        baseFlage = self.TransformationMatrixToPose(tmBaseFlange, True)
         return baseFlage
 
     def SolveIK(self,TCPPose, elbowUp):
@@ -179,8 +148,9 @@ class KinematicSolver:
         rY = math.radians(BaseFlangePose[4])
         rZ = math.radians(BaseFlangePose[5])
         
-        # get world rotation of flage
-        rmBaseToFlange = Rotation.from_euler('XYZ', [rX, rY, rZ], degrees=False).as_matrix()
+        # get world  (extrinsic) rotations euler angle of flage
+        rmBaseToFlange = Rotation.from_euler('xyz', [rX, rY, rZ], degrees=False).as_matrix()
+        angelsDeg = np.degrees(angelsRad)
         angelsDeg = np.degrees(angelsRad)
 
         tmJointJoint = self.updateAllTJointJointTrans(angelsDeg)
@@ -193,9 +163,10 @@ class KinematicSolver:
         
         r = Rotation.from_matrix(rbLink3EndToFlange)
 
+         # get body centred (intrinsic) rotations euler angle for j4, j5, j6
         angles =  r.as_euler('XYZ',degrees = False) 
         
-         #RZ J4
+        #RZ J4
         angelsRad[3] = angles[0] 
         #RY J5
         angelsRad[4] = angles[1] 
@@ -208,6 +179,6 @@ class KinematicSolver:
         tmJointJoint = self.updateAllTJointJointTrans(currAngleDeg)
         tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
         tmBaseFlange = tmBaseJioint[5]
-        tmBaseTCP = np.matmul(tmBaseFlange,self.PoseToTransformationMatrix(TCP))
+        tmBaseTCP = np.matmul(tmBaseFlange,self.PoseToTransformationMatrix(TCP,True))
 
         return tmJointJoint, tmBaseJioint, tmBaseFlange, tmBaseTCP

@@ -9,10 +9,10 @@ def main():
     #     _robot.JogRobot(1,3)
     #     robotPlot.PlotJointPost(_robot,5)
     #     continue
-    pose = [50,0,50,0,0,0]
+    pose = [50,0,50,0,45,0]
     step =  5
     while True:
-        for i in range(3,6):
+        for i in range(0,6):
             
             for j in range(8):
                 
