@@ -67,7 +67,27 @@ class RobotPlot:
         zTCPZ = [_rb.pDispTCP[0][2],_rb.pDispTCP[3][2]]
 
 
-        
+        # Joint or Flange
+        index = 5
+        length = 20
+        xEnd = np.matmul(_rb.tmBaseJioint[index],[length,0,0,1] ).A1
+        yEnd = np.matmul( _rb.tmBaseJioint[index],[0,length,0,1]).A1
+        zEnd = np.matmul( _rb.tmBaseJioint[index],[0,0,length,1]).A1
+        jOrig = np.transpose(_rb.tmBaseJioint[index][:3,3]).A1
+  
+        xTCPX2 = [jOrig[0],xEnd[0]]
+        yTCPX2= [jOrig[1],xEnd[1]]
+        zTCPX2 = [jOrig[2],xEnd[2]]
+
+        xTCPY2 = [jOrig[0],yEnd[0]]
+        yTCPY2 = [jOrig[1],yEnd[1]]
+        zTCPY2 = [jOrig[2],yEnd[2]]
+
+        xTCPZ2 = [jOrig[0],zEnd[0]]
+        yTCPZ2 = [jOrig[1],zEnd[1]]
+        zTCPZ2 = [jOrig[2],zEnd[2]]
+
+
 
         # clear graph and plot all 
         self.ax.cla()
@@ -86,11 +106,23 @@ class RobotPlot:
         self.ax.plot(xLink4,yLink4,zLink4,color="black",linewidth = '3')
         self.ax.plot(xLink5,yLink5,zLink5,color="black",linewidth = '3')
         self.ax.plot(xLink6,yLink6,zLink6,color="black",linewidth = '3')
+      
+        self.ax.plot(xTCPX2,yTCPX2,zTCPX2,color="red",linewidth = '3')
+        self.ax.plot(xTCPY2,yTCPY2,zTCPY2,color="green",linewidth = '3')
+        self.ax.plot(xTCPZ2,yTCPZ2,zTCPZ2,color="blue",linewidth = '3')
+
+        showTCP = True
+        if(showTCP):
+            self.ax.plot(xTCPX,yTCPX,zTCPX,color="red",linewidth = '3')
+            self.ax.plot(xTCPY,yTCPY,zTCPY,color="green",linewidth = '3')
+            self.ax.plot(xTCPZ,yTCPZ,zTCPZ,color="blue",linewidth = '3')
         
-        self.ax.plot(xTCPX,yTCPX,zTCPX,color="red",linewidth = '3')
-        self.ax.plot(xTCPY,yTCPY,zTCPY,color="green",linewidth = '3')
-        self.ax.plot(xTCPZ,yTCPZ,zTCPZ,color="blue",linewidth = '3')
         
+
+
+
+
+
         plt.pause(0.00001)
     
 
@@ -173,5 +205,6 @@ class RobotPlot:
         self.ax.plot(xTCPX,yTCPX,zTCPX,color="red",linewidth = '3')
         self.ax.plot(xTCPY,yTCPY,zTCPY,color="green",linewidth = '3')
         self.ax.plot(xTCPZ,yTCPZ,zTCPZ,color="blue",linewidth = '3')
+
         
         plt.pause(0.00001)

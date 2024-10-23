@@ -9,24 +9,29 @@ def main():
     #     _robot.JogRobot(1,3)
     #     robotPlot.PlotJointPost(_robot,5)
     #     continue
-
+    pose = [50,0,50,0,0,0]
+    step =  5
     while True:
-        for i in range(0,6):
+        for i in range(3,4):
             
             for j in range(8):
-                _robot.JogRobot(5,i)
-                robotPlot.PlotJointPost(_robot,5)
+                
+                _robot.MoveL(pose)
+                pose[i] +=step
+                robotPlot.Plot(_robot)
+                # robotPlot.PlotJointPost(_robot,5)
                 formatted_position = f"Robot Position (x, y, z, rx, ry, rz): ({_robot.PosRobot[0]:.2f}, {_robot.PosRobot[1]:.2f}, {_robot.PosRobot[2]:.2f},{_robot.PosRobot[3]:.2f}, {_robot.PosRobot[4]:.2f}, {_robot.PosRobot[5]:.2f})"
                 print(formatted_position)
-            for j in range(8):
-          
-      
-                _robot.JogRobot(-5,i)
-                robotPlot.PlotJointPost(_robot,5)
-                formatted_position = f"Robot Position (x, y, z, rx, ry, rz): ({_robot.PosRobot[0]:.2f}, {_robot.PosRobot[1]:.2f}, {_robot.PosRobot[2]:.2f},{_robot.PosRobot[3]:.2f}, {_robot.PosRobot[4]:.2f}, {_robot.PosRobot[5]:.2f})"
-                print(formatted_position)
- 
 
+            for j in range(8):
+                    
+                _robot.MoveL(pose)
+                pose[i] -=step
+                robotPlot.Plot(_robot)
+                # robotPlot.PlotJointPost(_robot,5)
+                formatted_position = f"Robot Position (x, y, z, rx, ry, rz): ({_robot.PosRobot[0]:.2f}, {_robot.PosRobot[1]:.2f}, {_robot.PosRobot[2]:.2f},{_robot.PosRobot[3]:.2f}, {_robot.PosRobot[4]:.2f}, {_robot.PosRobot[5]:.2f})"
+                print(formatted_position)
+        
 
 
             # for j in range(dist):

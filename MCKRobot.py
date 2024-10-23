@@ -20,7 +20,7 @@ class MCKRobot:
     tmBaseTCP = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     tmBaseFlange = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     #  
-    TCP = [0,0,0,0,0,0]
+    TCP = [0,0,-20,0,0,20]
 
     pBase = np.array([0,0,0,1])
     pShoulder = np.array([0,0,0,1])
@@ -43,19 +43,29 @@ class MCKRobot:
     def __init__(self):
         
         self._ks = KS(self._a,self._d,self._alphas,self._thetas)
-        jointAngles = self._ks.SolveIK(self._initialTCPPose,self.TCP,True)
+        jointAngles = self._ks.SolveIK(self._initialTCPPose,True)
         self.tmJointJoint, self.tmBaseJioint, self.tmBaseFlange, self.tmBaseTCP= self._ks.SolveFK( jointAngles,self.TCP)
         # self._ks.getTCPPoseFromTMBaseJoint(self.tmBaseJioint,self._initialTCPPose)
         self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
          
-    def JogRobot(self, step, poseIndex):
 
+    
+    
+    def JogRobot(self, step, poseIndex):
+        
         self._initialTCPPose[poseIndex] = self._initialTCPPose[poseIndex] +step
-        jointAngles = self._ks.SolveIK(self._initialTCPPose,self.TCP,True)
+        jointAngles = self._ks.SolveIK(self._initialTCPPose,True)
         self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(jointAngles,self.TCP)
         self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
         
+    def MoveL(self, pose):
+        flangeBase =  self._ks.GetFlangeBase(pose,self.TCP)
 
+        jointAngles = self._ks.SolveIK(flangeBase,True)
+        self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(jointAngles,self.TCP)
+        baseFlange= self._ks.TransformationMatrixToPose(self.tmBaseFlange)
+        BaseTCP= self._ks.TransformationMatrixToPose(self.tmBaseTCP)
+        self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
     # def JogRobot(self, step, poseIndex):
 
     #     self._initialTCPPose[poseIndex] = self._initialTCPPose[poseIndex] +step
