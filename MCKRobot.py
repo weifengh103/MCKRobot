@@ -20,7 +20,8 @@ class MCKRobot:
     tmBaseTCP = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     tmBaseFlange = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     #  
-    TCP = [0,0,-20,0,0,20]
+    # TCP = [0,0,20,0,0,20]
+    TCP = [20,0,0,0,0,0]
 
     pBase = np.array([0,0,0,1])
     pShoulder = np.array([0,0,0,1])
@@ -60,7 +61,7 @@ class MCKRobot:
         
     def MoveL(self, pose):
         flangeBase =  self._ks.GetFlangeBase(pose,self.TCP)
-
+        flangeBaseRad = np.deg2rad(flangeBase)
         jointAngles = self._ks.SolveIK(flangeBase,True)
         self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(jointAngles,self.TCP)
         baseFlange= self._ks.TransformationMatrixToPose(self.tmBaseFlange)

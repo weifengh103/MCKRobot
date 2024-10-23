@@ -92,11 +92,41 @@ class KinematicSolver:
 
         return [x,y,z,rx,ry,rz]
     
+    # def GetFlangeBase(self,pose,TCP):
+    #     # tmBaseTCP = self.PoseToTransformationMatrix(pose)
+    #     # tmFlangeTCP = self.PoseToTransformationMatrix(TCP)
+    #     # tmTCPFlange = np.linalg.inv(tmFlangeTCP)
+    #     # tmBaseFlange = np.matmul(tmBaseTCP,tmTCPFlange)
+    #     # baseFlage = self.TransformationMatrixToPose(tmBaseFlange)
+    #     # return baseFlage
+    #     pose
+    #     tmBaseTCP = self.PoseToTransformationMatrix(pose)
+        
+    #     tmTCP = self.PoseToTransformationMatrix(TCP)
+
+    #     tmTCPInv = np.linalg.inv(tmTCP)
+    #     TCPInv = self.TransformationMatrixToPose(tmTCPInv)
+    #     tmTransTCP = np.matmul(tmTCPInv,tmBaseTCP)
+
+
+        
+    #     unit  = np.identity(4)
+    #     tmtest = np.matmul(unit,tmBaseTCP)
+    #     tmBaseFlange = np.matmul(tmTCPInv,tmBaseTCP)
+    #     baseFlage = self.TransformationMatrixToPose(tmBaseFlange)
+    #     return baseFlage
+    
     def GetFlangeBase(self,pose,TCP):
+        # pose = [50,0,50,0,0,45]
+
         tmBaseTCP = self.PoseToTransformationMatrix(pose)
-        tmFlangeTCP = self.PoseToTransformationMatrix(TCP)
-        tmTCPFlange = np.linalg.inv(tmFlangeTCP)
-        tmBaseFlange = np.matmul(tmBaseTCP,tmTCPFlange)
+        tmTCP = self.PoseToTransformationMatrix(TCP)
+
+        tmTCPInv = np.linalg.inv(tmTCP)
+      
+
+        #below        np.matmul(tmBaseTCP,tmTCPInv) give CORRCETY XYZ rotation when RX RY RZ are zero
+        tmBaseFlange = np.matmul(tmBaseTCP,tmTCPInv)
         baseFlage = self.TransformationMatrixToPose(tmBaseFlange)
         return baseFlage
 

@@ -12,7 +12,7 @@ def main():
     pose = [50,0,50,0,0,0]
     step =  5
     while True:
-        for i in range(3,4):
+        for i in range(3,6):
             
             for j in range(8):
                 
