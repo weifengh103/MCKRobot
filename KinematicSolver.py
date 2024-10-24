@@ -84,10 +84,9 @@ class KinematicSolver:
         return [x,y,z,rx,ry,rz]
     
   
-    def GetFlangeBase(self,pose,TCP):
+    def GetFlangeBase(self,tmBaseTCP,TCP):
         # pose = [50,0,50,0,0,45]
 
-        tmBaseTCP = self.PoseToTransformationMatrix(pose, True)
         tmTCP = self.PoseToTransformationMatrix(TCP,True)
 
         tmTCPInv = np.linalg.inv(tmTCP)

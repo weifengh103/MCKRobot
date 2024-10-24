@@ -21,7 +21,7 @@ class MCKRobot:
     tmBaseFlange = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     #  
     # TCP = [0,0,20,0,0,20]
-    TCP = [20,20,0,45,0,0]
+    TCP = [20,0,20,0,0,0]
 
     pBase = np.array([0,0,0,1])
     pShoulder = np.array([0,0,0,1])
@@ -38,7 +38,7 @@ class MCKRobot:
     _ks = None
 
     # change this for setting initial robot position
-    _initialTCPPose = [50,0,50,0,0,0]
+    _initialTCPPose = [25,0,50,0,0,0]
 
 
     def __init__(self):
@@ -51,10 +51,46 @@ class MCKRobot:
 
     
     
-    def JogRobot(self, step, poseIndex):
+    def JogRobotWorld(self,  poseIndex, step):
+
+        currTmTCP = self.tmBaseTCP
+        tmNewPose = np.identity(4)
+        if poseIndex <3:
+            translate = [0,0,0]
+            translate[poseIndex] = step
+            tmTranslate = np.array([[1, 0, 0, translate[0]],
+                        [0, 1, 0, translate[1]],
+                        [0, 0, 1, translate[2]],
+                        [0, 0, 0, 1]])
+            tmNewPose = np.matmul(tmTranslate,currTmTCP)
+        else:
+            translationVector = currTmTCP[:3, 3].A1
+
+            tmToOrig = np.array([[1, 0, 0, -translationVector[0]],
+                        [0, 1, 0, -translationVector[1]],
+                        [0, 0, 1, -translationVector[2]],
+                        [0, 0, 0, 1]])
+            
+            tmToInit = np.array([[1, 0, 0, translationVector[0]],
+                        [0, 1, 0, translationVector[1]],
+                        [0, 0, 1, translationVector[2]],
+                        [0, 0, 0, 1]])
+            
+            stepRad = np.deg2rad(step)
+
+            tmRotate = self.getRotationMatrixOrig(poseIndex,stepRad)
+
+            tmNewPose = tmToInit @ tmRotate @ tmToOrig @ currTmTCP
+
+
+
+
+
+
         
-        self._initialTCPPose[poseIndex] = self._initialTCPPose[poseIndex] +step
-        jointAngles = self._ks.SolveIK(self._initialTCPPose,True)
+        flangeBase =  self._ks.GetFlangeBase(tmNewPose,self.TCP)
+        flangeBaseRad = np.deg2rad(flangeBase)
+        jointAngles = self._ks.SolveIK(flangeBase,True)
         self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(jointAngles,self.TCP)
         self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
         
@@ -66,6 +102,8 @@ class MCKRobot:
         baseFlange= self._ks.TransformationMatrixToPose(self.tmBaseFlange, True)
         BaseTCP= self._ks.TransformationMatrixToPose(self.tmBaseTCP, True)
         self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
+
+
     # def JogRobot(self, step, poseIndex):
 
     #     self._initialTCPPose[poseIndex] = self._initialTCPPose[poseIndex] +step
@@ -148,6 +186,28 @@ class MCKRobot:
         self.pDispTCP[3] = np.matmul(tmBaseTCP , [0,0,dispTCPAxisLength,1]).A1
 
         self.PosRobot = self._ks.TransformationMatrixToPose(tmBaseTCP,True)
+        pass
+
+    def getRotationMatrixOrig(self, poseIndex, theta):
+        """Returns a 4x4 rotation matrix for x, y or z aixs"""
+        # rX
+        if poseIndex ==3:   
+            return np.array([[1, 0, 0, 0],
+                            [0, np.cos(theta), -np.sin(theta), 0],
+                            [0, np.sin(theta), np.cos(theta), 0],
+                            [0, 0, 0, 1]])
+        # rY
+        if poseIndex ==4:
+            return np.array([[np.cos(theta), 0, np.sin(theta), 0],
+                            [0, 1, 0, 0],
+                            [-np.sin(theta), 0, np.cos(theta), 0],
+                            [0, 0, 0, 1]])
+        # rZ
+        if poseIndex ==5:
+            return np.array([[np.cos(theta), -np.sin(theta), 0, 0],
+                            [np.sin(theta), np.cos(theta), 0, 0],
+                            [0, 0, 1, 0],
+                            [0, 0, 0, 1]])
         
 
     
