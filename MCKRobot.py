@@ -21,7 +21,7 @@ class MCKRobot:
     tmBaseFlange = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     #  
     # TCP = [0,0,20,0,0,20]
-    TCP = [20,0,20,0,0,0]
+    TCP = [20,0,20,45,45,0]
 
     pBase = np.array([0,0,0,1])
     pShoulder = np.array([0,0,0,1])
@@ -38,7 +38,7 @@ class MCKRobot:
     _ks = None
 
     # change this for setting initial robot position
-    _initialTCPPose = [25,0,50,0,0,0]
+    _initialTCPPose = [30,0,50,0,0,0]
 
 
     def __init__(self):
@@ -47,10 +47,28 @@ class MCKRobot:
         jointAngles = self._ks.SolveIK(self._initialTCPPose,True)
         self.tmJointJoint, self.tmBaseJioint, self.tmBaseFlange, self.tmBaseTCP= self._ks.SolveFK( jointAngles,self.TCP)
         self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
-         
+    
 
-    
-    
+    def JogRobotTCP(self,  poseIndex, step):
+
+        currTmTCP = self.tmBaseTCP
+        tmNewPose = np.identity(4)
+        if poseIndex <3:
+            translate = [0,0,0]
+            translate[poseIndex] = step
+            tmTranslate = np.array([[1, 0, 0, translate[0]],
+                        [0, 1, 0, translate[1]],
+                        [0, 0, 1, translate[2]],
+                        [0, 0, 0, 1]])
+            tmNewPose = np.dot( currTmTCP,tmTranslate)
+        else:
+         
+            stepRad = np.deg2rad(step)
+            tmRotate = self.getRotationMatrixOrig(poseIndex,stepRad)
+            tmNewPose = np.dot( currTmTCP,tmRotate)
+
+        self.Move(tmNewPose)
+
     def JogRobotWorld(self,  poseIndex, step):
 
         currTmTCP = self.tmBaseTCP
@@ -62,7 +80,7 @@ class MCKRobot:
                         [0, 1, 0, translate[1]],
                         [0, 0, 1, translate[2]],
                         [0, 0, 0, 1]])
-            tmNewPose = np.matmul(tmTranslate,currTmTCP)
+            tmNewPose = tmTranslate @ currTmTCP
         else:
             translationVector = currTmTCP[:3, 3].A1
 
@@ -82,25 +100,12 @@ class MCKRobot:
 
             tmNewPose = tmToInit @ tmRotate @ tmToOrig @ currTmTCP
 
-
-
-
-
-
+        self.Move(tmNewPose)
         
-        flangeBase =  self._ks.GetFlangeBase(tmNewPose,self.TCP)
-        flangeBaseRad = np.deg2rad(flangeBase)
-        jointAngles = self._ks.SolveIK(flangeBase,True)
-        self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(jointAngles,self.TCP)
-        self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
-        
-    def MoveL(self, pose):
+    def Move(self, pose):
         flangeBase =  self._ks.GetFlangeBase(pose,self.TCP)
-        flangeBaseRad = np.deg2rad(flangeBase)
         jointAngles = self._ks.SolveIK(flangeBase,True)
         self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(jointAngles,self.TCP)
-        baseFlange= self._ks.TransformationMatrixToPose(self.tmBaseFlange, True)
-        BaseTCP= self._ks.TransformationMatrixToPose(self.tmBaseTCP, True)
         self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
 
 
@@ -111,21 +116,21 @@ class MCKRobot:
     #     self.tmJointJoint,  self.tmBaseJioint,self.tmBaseTCP, self.pJoints, self.pDispTCP = self._ks.SolveFK(jointAngles,tmBaseToTCP)
     #     self.UpdateRobotStatus()
     
-    def JogRobotTCP(self, step, poseIndex):
+    # def JogRobotTCP(self, step, poseIndex):
 
-        TCPLocalOffset = np.zeros(6)
-        TCPLocalOffset[poseIndex] = step
-        tmTCPLocalOffset = self._ks.PoseToTransformationMatrix(TCPLocalOffset)
+    #     TCPLocalOffset = np.zeros(6)
+    #     TCPLocalOffset[poseIndex] = step
+    #     tmTCPLocalOffset = self._ks.PoseToTransformationMatrix(TCPLocalOffset)
 
-        tmIP = self._ks.PoseToTransformationMatrix(self._initialTCPPose)
+    #     tmIP = self._ks.PoseToTransformationMatrix(self._initialTCPPose)
 
-        targetPose = self._ks.TransformationMatrixToPose(np.matmul(tmIP,tmTCPLocalOffset),True)
+    #     targetPose = self._ks.TransformationMatrixToPose(np.matmul(tmIP,tmTCPLocalOffset),True)
 
-        jointAngles = self._ks.SolveIK(targetPose,self.TCP,True)
-        self.tmJointJoint,  self.tmBaseJioint,self.pJoints= self._ks.SolveFK(jointAngles)
+    #     jointAngles = self._ks.SolveIK(targetPose,self.TCP,True)
+    #     self.tmJointJoint,  self.tmBaseJioint,self.pJoints= self._ks.SolveFK(jointAngles)
 
 
-        self.UpdateRobotStatus()
+    #     self.UpdateRobotStatus()
     
     def JogJoint(self, index, step):
 
@@ -137,9 +142,6 @@ class MCKRobot:
 
     # def UpdateRobotStatus(self):
         
-    
-
-
     #     self.pBase = self.pJoints[0]
     #     self.pShoulder =self.pJoints[1]
     #     self.pElbow = self.pJoints[2]
