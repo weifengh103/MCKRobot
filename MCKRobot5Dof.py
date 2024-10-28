@@ -1,9 +1,9 @@
 import numpy as np
 import math
-from KinematicSolver import KinematicSolver as KS
+from KinematicSolver5Dof import KinematicSolver5Dof as KS
 from DHMatrix6Dof import DHMatrix6Dof as DHPara
 from scipy.spatial.transform import Rotation   
-class MCKRobot:
+class MCKRobot5Dof:
     
     #Load DH parameters
     _a = DHPara.A
@@ -20,7 +20,7 @@ class MCKRobot:
     tmBaseFlange = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     #  
     # TCP = [0,0,20,0,0,20]
-    TCP = [0,0,20,0,0,0]
+    TCP = [20,20,0,0,0,45]
 
     pBase = np.array([0,0,0,1])
     pShoulder = np.array([0,0,0,1])

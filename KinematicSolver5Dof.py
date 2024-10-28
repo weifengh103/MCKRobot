@@ -5,7 +5,7 @@ import matplotlib as mpl
 import math
 from scipy.spatial.transform import Rotation   
 
-class KinematicSolver:
+class KinematicSolver5Dof:
     
     a = [0] * 6
     d = [0] * 6
