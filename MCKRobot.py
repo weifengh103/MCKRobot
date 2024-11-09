@@ -20,6 +20,7 @@ class MCKRobot:
     tmBaseFlange = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     #  
     # TCP = [0,0,20,0,0,20]
+    # TCP = [20,20,0,0,45,0]
     TCP = [0,0,0,0,0,0]
 
     pBase = np.array([0,0,0,1])
