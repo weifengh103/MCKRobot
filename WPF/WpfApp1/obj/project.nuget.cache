@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "ok7Z1SToAz0=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WpfApp1\\WHPG2.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Weifeng Huang\\.nuget\\packages\\communitytoolkit.mvvm\\8.3.2\\communitytoolkit.mvvm.8.3.2.nupkg.sha512"
+  ],
+  "logs": []
+}

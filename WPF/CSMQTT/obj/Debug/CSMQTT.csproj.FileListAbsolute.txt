@@ -1,0 +1,12 @@
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\bin\Debug\CSMQTT.exe.config
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\bin\Debug\CSMQTT.exe
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\bin\Debug\CSMQTT.pdb
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\obj\Debug\CSMQTT.csproj.AssemblyReference.cache
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\obj\Debug\CSMQTT.csproj.CoreCompileInputs.cache
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\obj\Debug\CSMQTT.csproj.Up2Date
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\obj\Debug\CSMQTT.exe
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\obj\Debug\CSMQTT.pdb
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\bin\Debug\M2Mqtt.Net.dll
+C:\Users\Weifeng Huang\Desktop\WHIOT\Reservoom\CSMQTT\bin\Debug\M2Mqtt.Net.pdb

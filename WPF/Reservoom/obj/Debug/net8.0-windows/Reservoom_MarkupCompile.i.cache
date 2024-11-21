@@ -1,0 +1,20 @@
+﻿Reservoom
+1.0.0.0
+
+winexe
+C#
+.cs
+C:\Users\Weifeng Huang\Desktop\MCKRobot\WPF\Reservoom\obj\Debug\net8.0-windows\
+Reservoom
+none
+false
+TRACE;DEBUG;NET;NET8_0;NETCOREAPP
+C:\Users\Weifeng Huang\Desktop\MCKRobot\WPF\Reservoom\App.xaml
+3-651115779
+
+20-118474783
+198-635017904
+MainWindow.xaml;Views\MakeReservationView.xaml;Views\ReservationListingView.xaml;
+
+True
+

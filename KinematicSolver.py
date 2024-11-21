@@ -171,7 +171,7 @@ class KinematicSolver:
         angelsRad[4] = angles[1] 
         #RX J6
         angelsRad[5] = angles[2]
-        print(angles[-3:])
+        # print(angles[-3:])
         return np.degrees(angelsRad)
     
     def SolveFK(self,currAngleDeg,TCP):
