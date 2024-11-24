@@ -43,7 +43,7 @@ def main():
                 tm1 = _robot.tmBaseJioint[0]
                 tm2 = _robot.tmBaseJioint[1]
 
-                tmBaseJoint_as_lists = [matrix.tolist() for matrix in _robot.tmBaseJioint]
+                tmBaseJoint_as_lists = [matrix.tolist() for matrix in _robot.tmInitCurrBaseJoint]
                 tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
                 client.publish(tmBaseJiointTopic, tmJson1)
 
@@ -56,7 +56,7 @@ def main():
                 
                 tm1 = _robot.tmBaseJioint[0]
                 tm2 = _robot.tmBaseJioint[1]
-                tmBaseJoint_as_lists = [matrix.tolist() for matrix in _robot.tmBaseJioint]
+                tmBaseJoint_as_lists = [matrix.tolist() for matrix in _robot.tmInitCurrBaseJoint]
                 tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
                 client.publish(tmBaseJiointTopic, tmJson1)
                 

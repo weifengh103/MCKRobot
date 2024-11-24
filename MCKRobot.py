@@ -18,6 +18,13 @@ class MCKRobot:
     tmBaseJioint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     tmBaseTCP = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     tmBaseFlange = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
+
+    # for wpf visulization
+    tmInitBaseJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
+    tmInitBaseJointInv = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
+
+    # tmInitCurrBaseJoint: tm of init joint to curr joint position
+    tmInitCurrBaseJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     #  
     # TCP = [0,0,20,0,0,20]
     # TCP = [20,20,0,0,45,0]
@@ -42,10 +49,15 @@ class MCKRobot:
 
 
     def __init__(self):
+       
         self._ks = KS(self._a,self._d,self._alphas,self._thetas)
+        for i in range(6):
+            self.tmInitBaseJoint[i] =self._ks.getDHTransMatrix(i,[0,0,0,0,0,0])
+            self.tmInitBaseJointInv[i] = np.linalg.inv( self.tmInitBaseJoint[i])
+
         self.Joints = self._ks.SolveIK(self._initialTCPPose,True)
         self.tmJointJoint, self.tmBaseJioint, self.tmBaseFlange, self.tmBaseTCP= self._ks.SolveFK( self.Joints,self.TCP)
-        self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
+        self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP, self.tmInitBaseJointInv)
 
     def JogRobotTCP(self,  poseIndex, step):
 
@@ -104,14 +116,14 @@ class MCKRobot:
         flangeBase =  self._ks.GetFlangeBase(pose,self.TCP)
         jointAngles = self._ks.SolveIK(flangeBase,True)
         self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(jointAngles,self.TCP)
-        self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
+        self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP, self.tmInitBaseJointInv)
     
     def JogJoint(self, index, step):
         self.Joints[index]+= step
         self.tmJointJoint,self.tmBaseJioint,self.tmBaseFlange, self.tmBaseTCP = self._ks.SolveFK(self.Joints,self.TCP)
-        self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP)
+        self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP, self.tmInitBaseJointInv)
 
-    def UpdateRobotStatusV2(self,tmBaseJioint, tmBaseTCP):
+    def UpdateRobotStatusV2(self,tmBaseJioint, tmBaseTCP,tmInitBaseJointInv):
         
         self.pJoints[1] = np.matmul(tmBaseJioint[0] , self.pJoints[0]).A1
         self.pJoints[2] = np.matmul(tmBaseJioint[1] , self.pJoints[0]).A1
@@ -135,6 +147,10 @@ class MCKRobot:
         self.pDispTCP[3] = np.matmul(tmBaseTCP , [0,0,dispTCPAxisLength,1]).A1
 
         self.PosRobot = self._ks.TransformationMatrixToPose(tmBaseTCP,True)
+
+        for i in range(6):
+            self.tmInitCurrBaseJoint[i] = np.matmul(tmInitBaseJointInv,tmBaseJioint)
+
         pass
 
     def getRotationMatrixOrig(self, poseIndex, theta):
