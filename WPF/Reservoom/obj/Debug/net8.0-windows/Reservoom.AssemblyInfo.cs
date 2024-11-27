@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Reservoom")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+169c26302facefdc8d62c3abfc12e8c86db14227")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+57d21db5857a3874ce501ad2df5f20ca88497417")]
 [assembly: System.Reflection.AssemblyProductAttribute("Reservoom")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Reservoom")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -96,6 +96,7 @@ namespace WPFRobot
         GeometryModel3D box2Model;
         GeometryModel3D box3Model;
 
+        Transform3D initBox2Tf;
 
         double step = 0;
         
@@ -104,11 +105,13 @@ namespace WPFRobot
         NDArray box2jointCenter;
 
         RobotMqtt robotMqtt;
+
+        List<NDArray> tmInitCurrBaseJoint = new List<NDArray>();
         public MainWindow()
         {
             robotMqtt = new RobotMqtt();
             robotMqtt.Init();
-            robotMqtt.Subscribe("tmBaseJioint");
+            robotMqtt.Subscribe("tmInitCurrBaseJoint");
             robotMqtt.client.MqttMsgPublishReceived += UpdateMqttMsg;
             
 
@@ -127,20 +130,41 @@ namespace WPFRobot
         private void UpdateMqttMsg(object sender,MqttMsgPublishEventArgs e)
         {
             var msg = System.Text.Encoding.Default.GetString(e.Message).Split(':');
-            if (msg[0] == "tmBaseJioint")
+            if (msg[0] == "tmInitCurrBaseJoint")
             {
-                var sss = ConvertTMBaseJioint( msg[1]);
+                tmInitCurrBaseJoint = ConvertTMBaseJioint( msg[1]);
                 //var matrix2 = ConvertToMatrix3D(sss);
-
             }
         }
 
-        static List<double[,]> ConvertTMBaseJioint(string input)
+        //static List<double[,]> ConvertTMBaseJioint(string input)
+        //{
+        //    var matrixList = JsonConvert.DeserializeObject<List<List<List<double>>>>(input);
+
+        //    // Convert the List<List<List<double>>> into List<double[,]>
+        //    List<double[,]> matrices = new List<double[,]>();
+
+        //    foreach (var matrix in matrixList)
+        //    {
+        //        double[,] matrixArray = new double[4, 4];
+        //        for (int i = 0; i < 4; i++)
+        //        {
+        //            for (int j = 0; j < 4; j++)
+        //            {
+        //                matrixArray[i, j] = matrix[i][j];
+        //            }
+        //        }
+        //        matrices.Add(matrixArray);
+        //    }
+        //    return matrices;
+        //}
+
+        static List<NDArray> ConvertTMBaseJioint(string input)
         {
             var matrixList = JsonConvert.DeserializeObject<List<List<List<double>>>>(input);
 
             // Convert the List<List<List<double>>> into List<double[,]>
-            List<double[,]> matrices = new List<double[,]>();
+            List<NDArray> matrices = new List<NDArray>();
 
             foreach (var matrix in matrixList)
             {
@@ -152,7 +176,7 @@ namespace WPFRobot
                         matrixArray[i, j] = matrix[i][j];
                     }
                 }
-                matrices.Add(matrixArray);
+                matrices.Add(new NDArray(matrixArray));
             }
             return matrices;
         }
@@ -219,7 +243,7 @@ namespace WPFRobot
 
             box2jointToCenter = box2InitalCenter- box2jointCenter;
 
-
+            initBox2Tf = box2Model.Transform;
 
             // Create the third box
             meshBuilder = new MeshBuilder(); // Reset the mesh builder
@@ -291,9 +315,12 @@ namespace WPFRobot
                             { 0,                        0, 0,                        1 }
                         });
 
-                   
+                        //NDArray rotationMatrix = tmInitCurrBaseJoint[1];
 
                         step++;
+
+
+                        /////old
 
 
                         var tm = np.array(new double[,] {
@@ -304,15 +331,10 @@ namespace WPFRobot
                         });
 
 
-
-
-
-
                         // Update j to ct after rotation
-                        box2jointToCenter = np.matmul(rotationMatrix, box2jointToCenter);
+                        //box2jointToCenter = np.matmul(rotationMatrix, box2jointToCenter);
 
 
-                        //tm = np.matmul(tm, box2jointCenter*-1);
 
                         // move part to orgin
                         tm = np.array(new double[,] {
@@ -332,6 +354,18 @@ namespace WPFRobot
                             { 0.0, 0.0, 1.0, box2jointCenter[2].GetDouble()},  // z translation
                             { 0.0, 0.0, 0.0, 1.0 }             // Homogeneous coordinate
                         });
+
+                        /////end old
+
+                        //var ss = initBox2Tf.Value;
+
+                        //var tm = np.array(new double[,] {
+                        //    { 1.0, 0.0, 0.0, 0.0 },  // Scaling by 2 in x direction
+                        //    { 0.0, 1.0, 0.0, 0.0 },  // Scaling by 2 in y direction
+                        //    { 0.0, 0.0, 1.0, 0.0 },  // Scaling by 2 in z direction
+                        //    { 0.0, 0.0, 0.0, 1.0 }   // Homogeneous coordinate (translation part is 0)
+                        //});
+
 
 
                         tm = np.matmul(tlm, tm);

@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{7A02B32F-7CAC-4BE7-AD40-1C097CFF8834}|WPFRobot\\WPFRobot.csproj|c:\\users\\weifeng huang\\desktop\\mckrobot\\wpf\\wpfrobot\\mainwindow.xaml.cs||{8B382828-6202-11D1-8870-0000F87579D2}|",
+      "RelativeMoniker": "D:0:0:{7A02B32F-7CAC-4BE7-AD40-1C097CFF8834}|WPFRobot\\WPFRobot.csproj|solutionrelative:wpfrobot\\mainwindow.xaml.cs||{8B382828-6202-11D1-8870-0000F87579D2}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7A02B32F-7CAC-4BE7-AD40-1C097CFF8834}|WPFRobot\\WPFRobot.csproj|c:\\users\\weifeng huang\\desktop\\mckrobot\\wpf\\wpfrobot\\wpfrobot.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{7A02B32F-7CAC-4BE7-AD40-1C097CFF8834}|WPFRobot\\WPFRobot.csproj|solutionrelative:wpfrobot\\wpfrobot.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{C1116B9B-53BF-4671-BCA0-1395A9C4F259}|WpfApp1\\WHPG2.csproj|c:\\users\\weifeng huang\\desktop\\mckrobot\\wpf\\wpfapp1\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{C1116B9B-53BF-4671-BCA0-1395A9C4F259}|WpfApp1\\WHPG2.csproj|solutionrelative:wpfapp1\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
@@ -28,33 +36,8 @@
         },
         {
           "DockedWidth": 885,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "MainWindow.xaml",
-              "DocumentMoniker": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WpfApp1\\MainWindow.xaml",
-              "RelativeDocumentMoniker": "WpfApp1\\MainWindow.xaml",
-              "ToolTip": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WpfApp1\\MainWindow.xaml",
-              "RelativeToolTip": "WpfApp1\\MainWindow.xaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2024-11-21T23:52:55.602Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "WHPG2",
-              "DocumentMoniker": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WpfApp1\\WHPG2.csproj",
-              "RelativeDocumentMoniker": "WpfApp1\\WHPG2.csproj",
-              "ToolTip": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WpfApp1\\WHPG2.csproj",
-              "RelativeToolTip": "WpfApp1\\WHPG2.csproj",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2024-11-21T23:52:52.935Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
@@ -62,6 +45,54 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WPFRobot\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "WPFRobot\\MainWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WPFRobot\\MainWindow.xaml.cs",
+              "RelativeToolTip": "WPFRobot\\MainWindow.xaml.cs",
+              "ViewState": "AQIAAD0BAAAAAAAAAAAQwE4BAAAaAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-11-25T02:25:47.742Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "WPFRobot.csproj",
+              "DocumentMoniker": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WPFRobot\\WPFRobot.csproj",
+              "RelativeDocumentMoniker": "WPFRobot\\WPFRobot.csproj",
+              "ToolTip": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WPFRobot\\WPFRobot.csproj",
+              "RelativeToolTip": "WPFRobot\\WPFRobot.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-11-25T02:25:43.256Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WpfApp1\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "WpfApp1\\MainWindow.xaml",
+              "ToolTip": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WpfApp1\\MainWindow.xaml",
+              "RelativeToolTip": "WpfApp1\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2024-11-21T23:52:55.602Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "WHPG2.csproj",
+              "DocumentMoniker": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WpfApp1\\WHPG2.csproj",
+              "RelativeDocumentMoniker": "WpfApp1\\WHPG2.csproj",
+              "ToolTip": "C:\\Users\\Weifeng Huang\\Desktop\\MCKRobot\\WPF\\WpfApp1\\WHPG2.csproj",
+              "RelativeToolTip": "WpfApp1\\WHPG2.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2024-11-21T23:52:52.935Z"
             }
           ]
         }

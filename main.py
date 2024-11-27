@@ -10,7 +10,7 @@ def main():
     #MQTT
     broker_address = "localhost"
     port = 1883
-    tmBaseJiointTopic = "tmBaseJioint"
+    tmBaseJiointTopic = "tmInitCurrBaseJoint"
     client = mqtt.Client()
     client.connect(broker_address, port)
 
@@ -32,19 +32,23 @@ def main():
 
     step = 0
     travel = 0
-
+    isPlot = True
     while True:
         
         for i in range(0,1):
             for j in range(0,20):
                 _robot.JogRobotWorld(i,1)
-                robotPlot.Plot(_robot)
+                if isPlot:
+                    robotPlot.Plot(_robot)
 
                 tm1 = _robot.tmBaseJioint[0]
                 tm2 = _robot.tmBaseJioint[1]
 
+
                 tmBaseJoint_as_lists = [matrix.tolist() for matrix in _robot.tmInitCurrBaseJoint]
                 tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
+                # tmJson1 =tmBaseJiointTopic+':' + json.dumps(_robot.tmInitCurrBaseJoint)
+
                 client.publish(tmBaseJiointTopic, tmJson1)
 
                 print(tm2)
@@ -52,12 +56,15 @@ def main():
                 
             for j in range(0,20):
                 _robot.JogRobotWorld(i,-1)
-                robotPlot.Plot(_robot)
+                if isPlot:
+                    robotPlot.Plot(_robot)
                 
                 tm1 = _robot.tmBaseJioint[0]
                 tm2 = _robot.tmBaseJioint[1]
                 tmBaseJoint_as_lists = [matrix.tolist() for matrix in _robot.tmInitCurrBaseJoint]
                 tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
+                # tmJson1 =tmBaseJiointTopic+':' + json.dumps(_robot.tmInitCurrBaseJoint)
+
                 client.publish(tmBaseJiointTopic, tmJson1)
                 
                 print(tm2)
