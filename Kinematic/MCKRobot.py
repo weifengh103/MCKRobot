@@ -150,8 +150,8 @@ class MCKRobot:
 
         for i in range(6):
             self.tmInitCurrBaseJoint[i] = np.matmul(tmInitBaseJointInv[i],tmBaseJioint[i])
-            self.tmInitCurrBaseJoint[i][2,3] = self.tmInitCurrBaseJoint[i][2,3]-50
-            self.tmInitCurrBaseJoint[i][0,3] = self.tmInitCurrBaseJoint[i][0,3]+50
+            self.tmInitCurrBaseJoint[i][2,3] = self.tmInitCurrBaseJoint[i][2,3]
+            self.tmInitCurrBaseJoint[i][0,3] = self.tmInitCurrBaseJoint[i][0,3]
         pass
 
     def getRotationMatrixOrig(self, poseIndex, theta):

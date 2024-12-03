@@ -32,7 +32,7 @@ def main():
 
     step = 0
     travel = 0
-    isPlot = True
+    isPlot = False
     while True:
         
         for i in range(0,1):
@@ -51,7 +51,7 @@ def main():
 
                 client.publish(tmBaseJiointTopic, tmJson1)
 
-                print(tm2)
+                # print(tm2)
                 time.sleep(0.1)
                 
             for j in range(0,20):
@@ -67,7 +67,7 @@ def main():
 
                 client.publish(tmBaseJiointTopic, tmJson1)
                 
-                print(tm2)
+                # print(tm2)
                 time.sleep(0.1)
 
 

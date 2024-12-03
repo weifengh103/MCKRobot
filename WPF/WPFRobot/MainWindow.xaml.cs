@@ -96,17 +96,20 @@ namespace WPFRobot
         GeometryModel3D box2Model;
         GeometryModel3D box3Model;
 
-        Transform3D initBox2Tf;
+        //Transform3D initBox2Tf;
 
-        double step = 0;
         
-        NDArray box2InitalCenter ;
-        NDArray box2jointToCenter;
-        NDArray box2jointCenter;
+        //NDArray box2InitalCenter ;
+        //NDArray box2jointToCenter;
+        NDArray box2JointCenter;
+
+
+        NDArray box3JointCenter;
+
 
         RobotMqtt robotMqtt;
 
-        List<NDArray> tmInitCurrBaseJoint = new List<NDArray>();
+        List<NDArray> tmInitCurrBaseJoints = new List<NDArray>();
         public MainWindow()
         {
             robotMqtt = new RobotMqtt();
@@ -127,37 +130,25 @@ namespace WPFRobot
 
         }
 
+        //        private void ShowDefaultAxisArrows()
+        //        {
+        //            var coordinateSystem = new CoordinateSystemVisual3D
+        //            {
+        //                ArrowLengths = 10
+        //            };
+
+        //            helixViewport.Children.Add(coordinateSystem);
+        //        }
+
         private void UpdateMqttMsg(object sender,MqttMsgPublishEventArgs e)
         {
             var msg = System.Text.Encoding.Default.GetString(e.Message).Split(':');
             if (msg[0] == "tmInitCurrBaseJoint")
             {
-                tmInitCurrBaseJoint = ConvertTMBaseJioint( msg[1]);
+                tmInitCurrBaseJoints = ConvertTMBaseJioint( msg[1]);
                 //var matrix2 = ConvertToMatrix3D(sss);
             }
         }
-
-        //static List<double[,]> ConvertTMBaseJioint(string input)
-        //{
-        //    var matrixList = JsonConvert.DeserializeObject<List<List<List<double>>>>(input);
-
-        //    // Convert the List<List<List<double>>> into List<double[,]>
-        //    List<double[,]> matrices = new List<double[,]>();
-
-        //    foreach (var matrix in matrixList)
-        //    {
-        //        double[,] matrixArray = new double[4, 4];
-        //        for (int i = 0; i < 4; i++)
-        //        {
-        //            for (int j = 0; j < 4; j++)
-        //            {
-        //                matrixArray[i, j] = matrix[i][j];
-        //            }
-        //        }
-        //        matrices.Add(matrixArray);
-        //    }
-        //    return matrices;
-        //}
 
         static List<NDArray> ConvertTMBaseJioint(string input)
         {
@@ -183,34 +174,7 @@ namespace WPFRobot
 
         private void AddTransformedBox()
         {
-            // Create the geometry for the box
-            //var meshBuilder = new MeshBuilder();
-            //meshBuilder.AddBox(new Point3D(0, 0, 25), 5, 5, 50); // Center at origin, 1x1x1 size
-            //meshBuilder.AddBox(new Point3D(25, 0, 50), 50, 5, 5); // Center at origin, 1x1x1 size
-            //meshBuilder.AddBox(new Point3D(75, 0, 50), 50, 5, 5); // Center at origin, 1x1x1 size
-            //var boxMesh = meshBuilder.ToMesh();
-
-            //// Create the material for the box
-            //var material = MaterialHelper.CreateMaterial(Colors.CornflowerBlue);
-
-            //// Create the Model3D for the box
-            //boxModel = new GeometryModel3D
-            //{
-            //    Geometry = boxMesh,
-            //    Material = material,
-            //    BackMaterial = material
-            //};
-
-            // Create a rotation around the Y-axis and store it for future updates
-            //rotation = new AxisAngleRotation3D(new Vector3D(0, 1, 0), 0); // Initially 0 degrees
-
-
-            //            double[,] transformationMatrix = {
-            //    { 1, 0, 0, 10 },
-            //    { 0, 1, 0, 20 },
-            //    { 0, 0, 1, 30 },
-            //    { 0, 0, 0,  1 }
-            //};
+           
             // Create the first box
             var meshBuilder = new MeshBuilder();
             meshBuilder.AddBox(new Point3D(0, 0, 25), 5, 5, 50); // Center at origin, 5x5x50 size
@@ -236,14 +200,10 @@ namespace WPFRobot
                 BackMaterial = box2Material
             };
 
-            box2InitalCenter = np.array( box2Mesh.Bounds.GetCenter().X, box2Mesh.Bounds.GetCenter().Y, box2Mesh.Bounds.GetCenter().Z,1);
-
-
-            box2jointCenter = np.array( new double[] { 0,0,50,1});
-
-            box2jointToCenter = box2InitalCenter- box2jointCenter;
-
-            initBox2Tf = box2Model.Transform;
+            //box2InitalCenter = np.array( box2Mesh.Bounds.GetCenter().X, box2Mesh.Bounds.GetCenter().Y, box2Mesh.Bounds.GetCenter().Z,1);
+            box2JointCenter = np.array( new double[] { 0,0,50,1});
+            //box2jointToCenter = box2InitalCenter- box2JointCenter;
+            //initBox2Tf = box2Model.Transform;
 
             // Create the third box
             meshBuilder = new MeshBuilder(); // Reset the mesh builder
@@ -257,11 +217,9 @@ namespace WPFRobot
                 BackMaterial = box3Material
             };
 
+            box3JointCenter = np.array(new double[] { 50, 0, 50, 1 });
 
-     
-
-
-            matrix = new Matrix3D(
+            var unityMatrix = new Matrix3D(
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
@@ -269,7 +227,7 @@ namespace WPFRobot
 
             //matrix =  ConvertToMatrix3D(transformationMatrix);
 
-            var tansformation = new MatrixTransform3D(matrix);
+            var tansformation = new MatrixTransform3D(unityMatrix);
 
             //var rotateTransform = new RotateTransform3D(rotation);
             // Apply the rotation to the model
@@ -297,105 +255,43 @@ namespace WPFRobot
                 while (true)
                 {
 
-                    Thread.Sleep(100);
+                    Thread.Sleep(10);
 
                     this.Dispatcher.Invoke(() => {
+                        UpdateArm2();
 
-                        double angleInDegrees = step; // Example rotation of 45 degrees
-                        double angleInRadians = angleInDegrees * Math.PI / 180; // Convert to radians
-
-
-
-                        // Create a 4x4 rotation matrix for the Y-axis using NumSharp
-                        NDArray rotationMatrix = np.array(new double[,]
-                        {
-                            { Math.Cos(angleInRadians), 0, Math.Sin(angleInRadians), 0 },
-                            { 0,                        1, 0,                        0 },
-                            { -Math.Sin(angleInRadians), 0, Math.Cos(angleInRadians), 0 },
-                            { 0,                        0, 0,                        1 }
-                        });
-
-                        //NDArray rotationMatrix = tmInitCurrBaseJoint[1];
-
-                        step++;
-
-
-                        /////old
-
-
-                        var tm = np.array(new double[,] {
-                            { 1.0, 0.0, 0.0, 0.0 },  // Scaling by 2 in x direction
-                            { 0.0, 1.0, 0.0, 0.0 },  // Scaling by 2 in y direction
-                            { 0.0, 0.0, 1.0, 0.0 },  // Scaling by 2 in z direction
-                            { 0.0, 0.0, 0.0, 1.0 }   // Homogeneous coordinate (translation part is 0)
-                        });
-
-
-                        // Update j to ct after rotation
-                        //box2jointToCenter = np.matmul(rotationMatrix, box2jointToCenter);
-
+                        NDArray tmInitCurrBaseJoint = tmInitCurrBaseJoints[2];
+                        NDArray rotationMatrix = np.array(new double[,]  {
+                            { tmInitCurrBaseJoint[0, 0].GetDouble(), tmInitCurrBaseJoint[0, 1].GetDouble(), tmInitCurrBaseJoint[0, 2].GetDouble(),0 },
+                            { tmInitCurrBaseJoint[1, 0].GetDouble(), tmInitCurrBaseJoint[1, 1].GetDouble(), tmInitCurrBaseJoint[1, 2].GetDouble(),0 },
+                            { tmInitCurrBaseJoint[2, 0].GetDouble(), tmInitCurrBaseJoint[2, 1].GetDouble(), tmInitCurrBaseJoint[2, 2].GetDouble(),0 },
+                            { 0,0,0,1}
+                          });
 
 
                         // move part to orgin
-                        tm = np.array(new double[,] {
-                            { 1.0, 0.0, 0.0, -box2jointCenter[0].GetDouble() },  // x translation
-                            { 0.0, 1.0, 0.0, -box2jointCenter[1].GetDouble() },  // y translation
-                            { 0.0, 0.0, 1.0, -box2jointCenter[2].GetDouble()},  // z translation
+                        var tm = np.array(new double[,] {
+                            { 1.0, 0.0, 0.0, -box3JointCenter[0].GetDouble() },  // x translation
+                            { 0.0, 1.0, 0.0, -box3JointCenter[1].GetDouble() },  // y translation
+                            { 0.0, 0.0, 1.0, -box3JointCenter[2].GetDouble()},  // z translation
                             { 0.0, 0.0, 0.0, 1.0 }             // Homogeneous coordinate
                         });
 
 
-                        // rotate part to around
-                        tm = np.matmul(rotationMatrix, tm);
-
-                        var tlm = np.array(new double[,] {
-                            { 1.0, 0.0, 0.0, box2jointCenter[0].GetDouble() },  // x translation
-                            { 0.0, 1.0, 0.0, box2jointCenter[1].GetDouble() },  // y translation
-                            { 0.0, 0.0, 1.0, box2jointCenter[2].GetDouble()},  // z translation
-                            { 0.0, 0.0, 0.0, 1.0 }             // Homogeneous coordinate
-                        });
-
-                        /////end old
-
-                        //var ss = initBox2Tf.Value;
-
-                        //var tm = np.array(new double[,] {
-                        //    { 1.0, 0.0, 0.0, 0.0 },  // Scaling by 2 in x direction
-                        //    { 0.0, 1.0, 0.0, 0.0 },  // Scaling by 2 in y direction
-                        //    { 0.0, 0.0, 1.0, 0.0 },  // Scaling by 2 in z direction
-                        //    { 0.0, 0.0, 0.0, 1.0 }   // Homogeneous coordinate (translation part is 0)
+                        //// rotate part to around
+                        tm = np.matmul(tmInitCurrBaseJoint, tm);
+                        //var tlm1 = np.array(new double[,] {
+                        //    { 1.0, 0.0, 0.0, 50},  // x translation
+                        //    { 0.0, 1.0, 0.0,0 },  // y translation
+                        //    { 0.0, 0.0, 1.0, 50},  // z translation
+                        //    { 0.0, 0.0, 0.0, 1.0 }             // Homogeneous coordinate
                         //});
+                        //tm = np.matmul(tlm1, tm);
+
+                        var Dtm = ConvertNDToMatrix3D(tm);
+                        box3Model.Transform = new MatrixTransform3D(Dtm);
 
 
-
-                        tm = np.matmul(tlm, tm);
-
-                        double[,] matrix2D = new double[4, 4];
-
-                        // Iterate over each element in the NumSharp matrix and copy to the 2D array
-                        for (int i = 0; i < 4; i++)
-                        {
-                            for (int j = 0; j < 4; j++)
-                            {
-                                matrix2D[i, j] = tm[i, j].GetDouble();
-                            }
-                        }
-
-                        
-                        //step += 0.001;
-
-
-                        //double[,] transformationMatrix = {
-                        //    { 1, 0, 0, 0+step },
-                        //    { 0, 1, 0, 0 },
-                        //    { 0, 0, 1, 0 },
-                        //    { 0, 0, 0,  1 }
-                        //};
-                        
-                        matrix = ConvertToMatrix3D(matrix2D);
-
-                   
-                        box2Model.Transform = new MatrixTransform3D(matrix);
                     });
                   
                 }
@@ -406,11 +302,52 @@ namespace WPFRobot
 
             
         }
-        public Matrix3D ConvertToMatrix3D(double[,] matrix)
+        private void UpdateArm2()
         {
-            if (matrix.GetLength(0) != 4 || matrix.GetLength(1) != 4)
-                throw new ArgumentException("Input matrix must be 4x4.");
+            NDArray tmInitCurrBaseJoint = tmInitCurrBaseJoints[1];
+            NDArray rotationMatrix1 = np.array(new double[,]  {
+                            { tmInitCurrBaseJoint[0, 0].GetDouble(), tmInitCurrBaseJoint[0, 1].GetDouble(), tmInitCurrBaseJoint[0, 2].GetDouble(),0 },
+                            { tmInitCurrBaseJoint[1, 0].GetDouble(), tmInitCurrBaseJoint[1, 1].GetDouble(), tmInitCurrBaseJoint[1, 2].GetDouble(),0 },
+                            { tmInitCurrBaseJoint[2, 0].GetDouble(), tmInitCurrBaseJoint[2, 1].GetDouble(), tmInitCurrBaseJoint[2, 2].GetDouble(),0 },
+                            { 0,0,0,1}
+                          });
 
+            // move part to orgin
+            var tm1 = np.array(new double[,] {
+                            { 1.0, 0.0, 0.0, -box2JointCenter[0].GetDouble() },  // x translation
+                            { 0.0, 1.0, 0.0, -box2JointCenter[1].GetDouble() },  // y translation
+                            { 0.0, 0.0, 1.0, -box2JointCenter[2].GetDouble()},  // z translation
+                            { 0.0, 0.0, 0.0, 1.0 }             // Homogeneous coordinate
+                        });
+
+            // rotate part to around
+            tm1 = np.matmul(rotationMatrix1, tm1);
+            var tlm1 = np.array(new double[,] {
+                            { 1.0, 0.0, 0.0, 0},  // x translation
+                            { 0.0, 1.0, 0.0,0 },  // y translation
+                            { 0.0, 0.0, 1.0, 50},  // z translation
+                            { 0.0, 0.0, 0.0, 1.0 }             // Homogeneous coordinate
+                        });
+            tm1 = np.matmul(tlm1, tm1);
+
+            var Dtm1 = ConvertNDToMatrix3D(tm1);
+            box2Model.Transform = new MatrixTransform3D(Dtm1);
+        }
+        public Matrix3D ConvertNDToMatrix3D(NDArray NDMatrix)
+        {
+            var nm = new Matrix3D(
+                NDMatrix[0, 0].GetDouble(), NDMatrix[1, 0].GetDouble(), NDMatrix[2, 0].GetDouble(), NDMatrix[3, 0].GetDouble(), // First row
+                NDMatrix[0, 1].GetDouble(), NDMatrix[1, 1].GetDouble(), NDMatrix[2, 1].GetDouble(), NDMatrix[3, 1].GetDouble(), // Second row
+                NDMatrix[0, 2].GetDouble(), NDMatrix[1, 2].GetDouble(), NDMatrix[2, 2].GetDouble(), NDMatrix[3, 2].GetDouble(), // Third row
+                NDMatrix[0, 3].GetDouble(), NDMatrix[1, 3].GetDouble(), NDMatrix[2, 3].GetDouble(), NDMatrix[3, 3].GetDouble()  // Fourth row
+                );
+
+            return nm;
+        }
+
+
+        public Matrix3D ConvertDoubleToMatrix3D(double[,] matrix)
+        {
             var nm =  new Matrix3D(
                 matrix[0, 0], matrix[1, 0], matrix[2, 0], matrix[3, 0], // First row
                 matrix[0, 1], matrix[1, 1], matrix[2, 1], matrix[3, 1], // Second row
@@ -419,6 +356,19 @@ namespace WPFRobot
             );
 
             return nm;
+        }
+
+        public double[,] ConvertNDToDouble(NDArray NDMatrix)
+        {
+            double[,] doubleMatrix = new double[4, 4];
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    doubleMatrix[i, j] = NDMatrix[i, j].GetDouble();
+                }
+            }
+            return doubleMatrix;
         }
 
         //private void updateAnimation()
@@ -547,7 +497,7 @@ namespace WPFRobot
         {
             var coordinateSystem = new CoordinateSystemVisual3D
             {
-                ArrowLengths = 2
+                ArrowLengths = 30
             };
 
             helixViewport.Children.Add(coordinateSystem);
