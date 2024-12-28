@@ -32,7 +32,7 @@ def main():
 
     step = 0
     travel = 0
-    isPlot = False
+    isPlot = True
     while True:
         
         for i in range(0,1):
@@ -43,7 +43,7 @@ def main():
 
                 tm1 = _robot.tmBaseJioint[0]
                 tm2 = _robot.tmBaseJioint[1]
-
+                tm3 = _robot.tmBaseJioint[2]
 
                 tmBaseJoint_as_lists = [matrix.tolist() for matrix in _robot.tmInitCurrBaseJoint]
                 tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
@@ -51,7 +51,7 @@ def main():
 
                 client.publish(tmBaseJiointTopic, tmJson1)
 
-                # print(tm2)
+                print(tm3)
                 time.sleep(0.1)
                 
             for j in range(0,20):
@@ -61,13 +61,14 @@ def main():
                 
                 tm1 = _robot.tmBaseJioint[0]
                 tm2 = _robot.tmBaseJioint[1]
+                tm3 = _robot.tmBaseJioint[2]
                 tmBaseJoint_as_lists = [matrix.tolist() for matrix in _robot.tmInitCurrBaseJoint]
                 tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
                 # tmJson1 =tmBaseJiointTopic+':' + json.dumps(_robot.tmInitCurrBaseJoint)
 
                 client.publish(tmBaseJiointTopic, tmJson1)
                 
-                # print(tm2)
+                print(tm3)
                 time.sleep(0.1)
 
 

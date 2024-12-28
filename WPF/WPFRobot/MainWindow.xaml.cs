@@ -119,13 +119,14 @@ namespace WPFRobot
             
 
             InitializeComponent();
-      
+
 
             //LoadObjFile(@"C:\Users\Weifeng Huang\Desktop\stl\Assembly v17_Assembly v17_J2Pulley T160 v22_1_Body1.OBJ"); // Replace with your OBJ file path
             //LoadObjFile(@"C:\Users\Weifeng Huang\Desktop\stl\Assembly v17_Assembly v17_J1J2J3Mount v25_1_Body1.OBJ"); // Replace with your OBJ file path
+            LoadObjFile(@"C:\Users\Weifeng Huang\Desktop\Git Image\Assembly v87.OBJ");
             ShowDefaultAxisArrows();
             //AddRotatingAndTranslatingBlock();
-            AddTransformedBox();
+            //AddTransformedBox();
 
 
         }

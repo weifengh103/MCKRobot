@@ -14,7 +14,7 @@
             <helix:GridLinesVisual3D />
             
         </helix:HelixViewport3D>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="622,112,0,0" VerticalAlignment="Top" Height="36" Width="88" Click="Button_Click"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="36" Width="88" Click="Button_Click"/>
     </Grid>
 </Window>
 

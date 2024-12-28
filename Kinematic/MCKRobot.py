@@ -44,18 +44,22 @@ class MCKRobot:
     
     _ks = None
 
-    # change this for setting initial robot position
-    _initialTCPPose = [50,0,50,0,0,0]
+    #  initial robot position of defined DH Matrix
+    _initialTCPPose = [100,0,50,0,0,0]
 
-
+    # target robot position
+    _targetTCPPose = [50,0,50,0,0,0]
     def __init__(self):
        
+        # get tmInitBaseJoint
         self._ks = KS(self._a,self._d,self._alphas,self._thetas)
+        self.Joints = self._ks.SolveIK(self._initialTCPPose,True)
         for i in range(6):
-            self.tmInitBaseJoint[i] =self._ks.getDHTransMatrix(i,[0,0,0,0,0,0])
+            self.tmInitBaseJoint[i] =self._ks.getDHTransMatrix(i,self.Joints)
             self.tmInitBaseJointInv[i] = np.linalg.inv( self.tmInitBaseJoint[i])
 
-        self.Joints = self._ks.SolveIK(self._initialTCPPose,True)
+
+        self.Joints = self._ks.SolveIK(self._targetTCPPose,True)
         self.tmJointJoint, self.tmBaseJioint, self.tmBaseFlange, self.tmBaseTCP= self._ks.SolveFK( self.Joints,self.TCP)
         self.UpdateRobotStatusV2( self.tmBaseJioint, self.tmBaseTCP, self.tmInitBaseJointInv)
 
