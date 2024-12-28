@@ -1,5 +1,5 @@
 # MCKROBOT  
- 
+## Let's Build a 3D-Printed 6-DOF Robot Arm from Scratch! 
 
 <p align="center">
 <img src="https://github.com/user-attachments/assets/515aa511-3345-4d26-aeb4-208ebae5a0b2" alt="Sample Image" style="width:80%; height:auto;">
@@ -9,7 +9,7 @@
 MCKRobot CAD Model
 </p>
 
-## Build a 3D-Printed 6-DOF Robot Arm from Scratch!  
+ 
 
 **MCKRobot** is a DIY project for building a 3D-printed, six degrees-of-freedom (6-DOF) robot arm. This repository includes two key components:  
 1. **Kinematic Solver**: For robot motion calculations.  
