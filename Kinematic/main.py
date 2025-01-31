@@ -35,9 +35,11 @@ def main():
     isPlot = True
     while True:
         
-        for i in range(0,1):
-            for j in range(0,20):
-                _robot.JogRobotWorld(i,1)
+        
+
+        for i in range(3,6):
+            for j in range(0,18):
+                _robot.JogRobotTCP(i,5)
                 if isPlot:
                     robotPlot.Plot(_robot)
 
@@ -52,10 +54,10 @@ def main():
                 client.publish(tmBaseJiointTopic, tmJson1)
 
                 print(tm3)
-                time.sleep(0.1)
+                time.sleep(0.01)
                 
-            for j in range(0,20):
-                _robot.JogRobotWorld(i,-1)
+            for j in range(0,18):
+                _robot.JogRobotTCP(i,-5)
                 if isPlot:
                     robotPlot.Plot(_robot)
                 
@@ -69,9 +71,43 @@ def main():
                 client.publish(tmBaseJiointTopic, tmJson1)
                 
                 print(tm3)
-                time.sleep(0.1)
+                time.sleep(0.01)
+        for i in range(0,3):
+            for j in range(0,15):
+                _robot.JogRobotWorld(i,3)
+                if isPlot:
+                    robotPlot.Plot(_robot)
 
+                tm1 = _robot.tmBaseJioint[0]
+                tm2 = _robot.tmBaseJioint[1]
+                tm3 = _robot.tmBaseJioint[2]
 
+                tmBaseJoint_as_lists = [matrix.tolist() for matrix in _robot.tmInitCurrBaseJoint]
+                tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
+                # tmJson1 =tmBaseJiointTopic+':' + json.dumps(_robot.tmInitCurrBaseJoint)
+
+                client.publish(tmBaseJiointTopic, tmJson1)
+
+                print(tm3)
+                time.sleep(0.01)
+                
+            for j in range(0,15):
+                _robot.JogRobotWorld(i,-3)
+                if isPlot:
+                    robotPlot.Plot(_robot)
+                
+                tm1 = _robot.tmBaseJioint[0]
+                tm2 = _robot.tmBaseJioint[1]
+                tm3 = _robot.tmBaseJioint[2]
+                tmBaseJoint_as_lists = [matrix.tolist() for matrix in _robot.tmInitCurrBaseJoint]
+                tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
+                # tmJson1 =tmBaseJiointTopic+':' + json.dumps(_robot.tmInitCurrBaseJoint)
+
+                client.publish(tmBaseJiointTopic, tmJson1)
+                
+                print(tm3)
+                time.sleep(0.01)
+        time.sleep(1)
         # for k in range(1,2):
         #     for i in range(0,3):
 

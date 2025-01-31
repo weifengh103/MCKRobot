@@ -12,6 +12,7 @@ class RobotPlot:
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
+
     def Plot(self,_rb:robot ):
         # get all link positions
         xLink1 = [_rb.pShoulder[0],_rb.pBase[0]]
@@ -52,6 +53,10 @@ class RobotPlot:
         zTCPZ = [_rb.pDispTCP[0][2],_rb.pDispTCP[3][2]]
 
 
+        xFlangeTCP = [_rb.pFlange[0],_rb.pDispTCP[0][0]]
+        yFlangeTCP = [_rb.pFlange[1],_rb.pDispTCP[0][1]]
+        zFlangeTCP = [_rb.pFlange[2],_rb.pDispTCP[0][2]]
+
         # Joint or Flange
         index = 5
         length = 20
@@ -75,7 +80,7 @@ class RobotPlot:
 
         # clear graph and plot all 
         self.ax.cla()
-        scale = 80
+        scale = 40
         
         axisOffset = 50
         self.ax.set_xlim([-scale+axisOffset, scale+axisOffset])
@@ -91,15 +96,18 @@ class RobotPlot:
         self.ax.plot(xLink5,yLink5,zLink5,color="black",linewidth = '3')
         self.ax.plot(xLink6,yLink6,zLink6,color="black",linewidth = '3')
       
-        self.ax.plot(xTCPX2,yTCPX2,zTCPX2,color="red",linewidth = '3')
-        self.ax.plot(xTCPY2,yTCPY2,zTCPY2,color="green",linewidth = '3')
-        self.ax.plot(xTCPZ2,yTCPZ2,zTCPZ2,color="blue",linewidth = '3')
+        # self.ax.plot(xTCPX2,yTCPX2,zTCPX2,color="red",linewidth = '3')
+        # self.ax.plot(xTCPY2,yTCPY2,zTCPY2,color="green",linewidth = '3')
+        # self.ax.plot(xTCPZ2,yTCPZ2,zTCPZ2,color="blue",linewidth = '3')
 
         showTCP = True
         if(showTCP):
+
+
             self.ax.plot(xTCPX,yTCPX,zTCPX,color="red",linewidth = '3')
             self.ax.plot(xTCPY,yTCPY,zTCPY,color="green",linewidth = '3')
             self.ax.plot(xTCPZ,yTCPZ,zTCPZ,color="blue",linewidth = '3')
+            self.ax.plot(xFlangeTCP,yFlangeTCP,zFlangeTCP,color="orange",linewidth = '4')
         
         plt.pause(0.00001)
     
