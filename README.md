@@ -27,7 +27,7 @@ A lightweight kinematic solver tailored for the MCKRobot. It is specifically des
 </p>
 
 <p align="center">
-MCKRobot Kinematic simulation in Python
+Kinematic simulation for TCP RX, RY, RZ, X, Y, Z movement
 </p>
 
 ### **Forward Kinematics (FK)**  
