@@ -23,7 +23,7 @@ A lightweight kinematic solver tailored for the MCKRobot. It is specifically des
 
 
 <p align="center">
-<img src="https://github.com/user-attachments/assets/f7e03232-4b41-498b-a2af-2888c0277717" alt="Sample Image" style="width:60%; height:auto;">
+<img src="https://raw.githubusercontent.com/weifengh103/MCKRobot/refs/heads/master/Kinematic/Doc/MCKRobotGIF.gif" alt="Sample Image" style="width:60%; height:auto;">
 </p>
 
 <p align="center">
