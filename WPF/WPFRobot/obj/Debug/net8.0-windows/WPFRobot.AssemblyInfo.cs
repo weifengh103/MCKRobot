@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WPFRobot")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1328b52a3fb231f20302f67f70081a05f450f07a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e18a0ab367d9c777589d578a2bf173f964f03937")]
 [assembly: System.Reflection.AssemblyProductAttribute("WPFRobot")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WPFRobot")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
