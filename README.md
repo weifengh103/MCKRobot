@@ -2,18 +2,19 @@
 ## Let's Build a 3D-Printed 6-DOF Robot Arm from Scratch! 
 
 <p align="center">
-<img src="https://github.com/weifengh103/MCKRobot/blob/master/Readme%20access/CAD%20+%20Assembly.png?raw=true" alt="Sample Image" style="width:80%; height:auto;">
+<img src="https://github.com/weifengh103/MCKRobot/blob/master/Readme%20access/CAD%20+%20Assembly.png?raw=true" alt="Sample Image" style="width:180%; height:auto;">
 </p>
 
 <p align="center">
-MCKRobot CAD Model
+MCKRobot CAD Model and Assembly
 </p>
 
  
 
 **MCKRobot** is a DIY project for building a 3D-printed, six degrees-of-freedom (6-DOF) robot arm. This repository includes two key components:  
-1. **Kinematic Solver**: For robot motion calculations.  
-2. **WPF GUI**: For robot control and visualization.  
+1. **Kinematic Solver**: For robot motion calculations.
+2. **Robot Build and Control**: For building the actual robot.  
+3. **WPF GUI**: For robot control and visualization.  
 
 ---
 
@@ -41,6 +42,26 @@ The IK solver computes the joint angles required to achieve a given TCP pose (T_
    Solved using joints J1, J2, and J3 through a geometric approach.  
 2. **Orientation [RX, RY, RZ]:**  
    Solved using joints J4, J5, and J6, which are treated as a spherical joint with three rotational degrees of freedom. Orientation is computed using the **Euler angle approach** in XYZ order.  
+
+---
+
+## Robot Build and Control
+
+The robot was designed using Autodesk Fusion 360 and built with a combination of 3D-printed and off-the-shelf components.
+
+Key items:
+
+- 3D-printed housing and belt gears
+
+- Stepper motors and drivers for joint movement
+
+- ESP32 controller (may switch to Raspberry Pi later)
+
+<p align="center"> <img src="https://github.com/weifengh103/MCKRobot/blob/master/Readme%20access/MCK%20Robot%20GIF%202.gif?raw=true" alt="MCK Robot Demonstration" style="width:60%; height:auto;"> </p> 
+
+<p align="center">
+Individual joint testing
+</p>
 
 ---
 
