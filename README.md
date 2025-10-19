@@ -2,7 +2,7 @@
 ## Let's Build a 3D-Printed 6-DOF Robot Arm from Scratch! 
 
 <p align="center">
-<img src="https://github.com/user-attachments/assets/515aa511-3345-4d26-aeb4-208ebae5a0b2" alt="Sample Image" style="width:80%; height:auto;">
+<img src="https://github.com/weifengh103/MCKRobot/blob/master/Readme%20access/CAD%20+%20Assembly.png?raw=true" alt="Sample Image" style="width:80%; height:auto;">
 </p>
 
 <p align="center">
