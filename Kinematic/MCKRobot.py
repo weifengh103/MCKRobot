@@ -26,9 +26,9 @@ class MCKRobot:
     # tmInitCurrBaseJoint: tm of init joint to curr joint position
     tmInitCurrBaseJoint = [np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4]),np.zeros([4,4])]
     #  
-    TCP = [0,0,20,0,0,20]
+    #TCP = [0,0,20,0,0,20]
     # TCP = [20,20,0,0,45,0]
-    # TCP = [0,0,0,0,0,0]
+    TCP = [0,0,0,0,0,0]
 
     pBase = np.array([0,0,0,1])
     pShoulder = np.array([0,0,0,1])
