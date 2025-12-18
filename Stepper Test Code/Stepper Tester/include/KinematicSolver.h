@@ -1,57 +1,65 @@
-// ------------------------------
-// File: KinematicSolver.h
-// ------------------------------
+#ifndef KINEMATIC_SOLVER_H
+#define KINEMATIC_SOLVER_H
 
-#ifndef ESP32_KINEMATIC_SOLVER_H
-#define ESP32_KINEMATIC_SOLVER_H
-
-// Required standard headers
-#include <Arduino.h>
 #include <math.h>
 
-// Constants
-#define DOF 6 // Degrees of Freedom
-#define MAT 4 // Matrix size (4x4)
+// =====================
+// Macros
+// =====================
+#define DEG2RAD(x) ((x) * M_PI / 180.0f)
+#define RAD2DEG(x) ((x) * 180.0f / M_PI)
 
-// Macro to ensure a value is within a range (borrowed from Arduino)
-#ifndef constrain
-#define constrain(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt)))
-#endif
-
-// ===================== 4x4 Matrix Class (Mostly inline in header) =====================
-class Matrix4x4 {
-public:
-    double m[MAT][MAT];
-
-    Matrix4x4(); // Constructor Declaration
-
-    // Operator overloading and helpers kept inline for efficiency/simplicity
-    Matrix4x4 operator*(const Matrix4x4 &o) const;
-    Matrix4x4 inverseRT() const;
-    
-    // Add a simple print function for debugging (Declaration)
-    void print();
+// =====================
+// Basic math structs
+// =====================
+struct Vec3 {
+  float x;
+  float y;
+  float z;
 };
 
-// ===================== Rotation Helpers (Inline) =====================
-// Kept inline in the header for compiler optimization and accessibility
-// These are not part of the class, they are global helpers.
-void eulerXYZ(double rx, double ry, double rz, double R[3][3]);
-void rotToEulerXYZ(double R[3][3], double e[3]);
+struct Mat3 {
+  float m[3][3];
+};
 
-// ===================== Kinematic Solver Class (Declarations) =====================
-// Only function signatures are placed here.
+// =====================
+// KinematicSolver class
+// =====================
 class KinematicSolver {
 public:
-    double a[DOF], d[DOF], alpha[DOF], theta[DOF];
+  // DH parameters
+  float a[6];
+  float d[6];
+  float alpha[6];
+  float theta0[6];
 
-    // Constructor declaration
-    KinematicSolver(double *_a, double *_d, double *_alpha, double *_theta);
+  // Constructor
+  KinematicSolver(const float* a_,
+                  const float* d_,
+                  const float* alpha_,
+                  const float* theta0_);
 
-    // Forward Kinematics (FK) and Inverse Kinematics (IK) declarations
-    Matrix4x4 dh(int i, double *qDeg);
-    Matrix4x4 FK(double *qDeg, double *tcpPose);
-    void IK(double *pose, bool elbowUp, double *qDeg);
+  // -------- IK --------
+  // tcpPose = {x, y, z, rx, ry, rz}  (deg for rotations)
+  // elbowUp = true / false
+  // outAnglesDeg = 6 joint angles in degrees
+  void SolveIK(const float tcpPose[6],
+               bool elbowUp,
+               float outAnglesDeg[6]);
+
+private:
+  // -------- Rotation helpers --------
+  Mat3 eulerXYZExtrinsicToMat(float rx, float ry, float rz);
+  Vec3 matToEulerXYZIntrinsic(const Mat3& R);
+
+  // -------- Matrix helpers --------
+  Mat3 mat3Mul(const Mat3& A, const Mat3& B);
+  Mat3 mat3Transpose(const Mat3& A);
+
+  // -------- DH --------
+  Mat3 DHRotation(int jointIdx, float jointAngleDeg);
+
+  void printMat3(const Mat3& R);
 };
 
-#endif // ESP32_KINEMATIC_SOLVER_H
+#endif  // KINEMATIC_SOLVER_H

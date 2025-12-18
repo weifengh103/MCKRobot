@@ -12,7 +12,7 @@ def main():
     port = 1883
     tmBaseJiointTopic = "tmInitCurrBaseJoint"
     client = mqtt.Client()
-    client.connect(broker_address, port)
+    # client.connect(broker_address, port)
 
     
     _robot = Robot()
@@ -51,7 +51,7 @@ def main():
                 tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
                 # tmJson1 =tmBaseJiointTopic+':' + json.dumps(_robot.tmInitCurrBaseJoint)
 
-                client.publish(tmBaseJiointTopic, tmJson1)
+                # client.publish(tmBaseJiointTopic, tmJson1)
 
                 print(tm3)
                 time.sleep(0.01)
@@ -68,7 +68,7 @@ def main():
                 tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
                 # tmJson1 =tmBaseJiointTopic+':' + json.dumps(_robot.tmInitCurrBaseJoint)
 
-                client.publish(tmBaseJiointTopic, tmJson1)
+                # client.publish(tmBaseJiointTopic, tmJson1)
                 
                 print(tm3)
                 time.sleep(0.01)
@@ -86,7 +86,7 @@ def main():
                 tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
                 # tmJson1 =tmBaseJiointTopic+':' + json.dumps(_robot.tmInitCurrBaseJoint)
 
-                client.publish(tmBaseJiointTopic, tmJson1)
+                # client.publish(tmBaseJiointTopic, tmJson1)
 
                 print(tm3)
                 time.sleep(0.01)
@@ -103,7 +103,7 @@ def main():
                 tmJson1 =tmBaseJiointTopic+':' + json.dumps(tmBaseJoint_as_lists)
                 # tmJson1 =tmBaseJiointTopic+':' + json.dumps(_robot.tmInitCurrBaseJoint)
 
-                client.publish(tmBaseJiointTopic, tmJson1)
+                # client.publish(tmBaseJiointTopic, tmJson1)
                 
                 print(tm3)
                 time.sleep(0.01)
@@ -149,11 +149,11 @@ def main():
         #         print(formatted_position)
 
             
-def publish_matrix(matrix_json):
-    client = mqtt.Client()
-    client.connect(broker_address, port)
-    client.publish(topic, matrix_json)
-    client.disconnect()
+# def publish_matrix(matrix_json):
+    # client = mqtt.Client()
+    # client.connect(broker_address, port)
+    # client.publish(topic, matrix_json)
+    # client.disconnect()
 
 
 if __name__ == '__main__':

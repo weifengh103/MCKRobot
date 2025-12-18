@@ -150,7 +150,7 @@ class KinematicSolver:
         # get world  (extrinsic) rotations euler angle of flage
         rmBaseToFlange = Rotation.from_euler('xyz', [rX, rY, rZ], degrees=False).as_matrix()
         angelsDeg = np.degrees(angelsRad)
-        angelsDeg = np.degrees(angelsRad)
+ 
 
         tmJointJoint = self.updateAllTJointJointTrans(angelsDeg)
         tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)

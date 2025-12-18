@@ -1,154 +1,208 @@
-// ------------------------------
-// File: KinematicSolver.cpp
-// ------------------------------
-
-// Must include its own header file
 #include "KinematicSolver.h"
-
-// ===================== Matrix4x4 Definitions =====================
-
-// Constructor Definition
-Matrix4x4::Matrix4x4() {
-    for (int i = 0; i < MAT; i++)
-        for (int j = 0; j < MAT; j++)
-            m[i][j] = (i == j) ? 1.0 : 0.0;
+#include <Arduino.h>
+// =====================
+// Constructor
+// =====================
+KinematicSolver::KinematicSolver(const float* a_,
+                                 const float* d_,
+                                 const float* alpha_,
+                                 const float* theta0_) {
+  for (int i = 0; i < 6; i++) {
+    a[i] = a_[i];
+    d[i] = d_[i];
+    alpha[i] = alpha_[i];
+    theta0[i] = theta0_[i];
+  }
 }
 
-// Operator* Definition
-Matrix4x4 Matrix4x4::operator*(const Matrix4x4 &o) const {
-    Matrix4x4 r;
-    for (int i = 0; i < MAT; i++)
-        for (int j = 0; j < MAT; j++) {
-            r.m[i][j] = 0;
-            for (int k = 0; k < MAT; k++)
-                r.m[i][j] += m[i][k] * o.m[k][j];
-        }
-    return r;
+// =====================
+// Rotation: Extrinsic xyz → matrix
+// =====================
+Mat3 KinematicSolver::eulerXYZExtrinsicToMat(float rx, float ry, float rz) {
+  float cx = cos(rx), sx = sin(rx);
+  float cy = cos(ry), sy = sin(ry);
+  float cz = cos(rz), sz = sin(rz);
+
+  Mat3 R;
+  // Row 0
+  R.m[0][0] = cy * cz;
+  R.m[0][1] = sx * sy * cz - cx * sz;
+  R.m[0][2] = cx * sy * cz + sx * sz;
+
+  // Row 1
+  R.m[1][0] = cy * sz;
+  R.m[1][1] = sx * sy * sz + cx * cz;
+  R.m[1][2] = cx * sy * sz - sx * cz;
+
+  // Row 2
+  R.m[2][0] = -sy;
+  R.m[2][1] = sx * cy;
+  R.m[2][2] = cx * cy;
+
+  return R;
 }
 
-// inverseRT Definition
-Matrix4x4 Matrix4x4::inverseRT() const {
-    Matrix4x4 r;
-    for (int i = 0; i < 3; i++)
-        for (int j = 0; j < 3; j++)
-            r.m[i][j] = m[j][i];
+// =====================
+// Rotation: matrix → intrinsic XYZ
+// =====================
+Vec3 KinematicSolver::matToEulerXYZIntrinsic(const Mat3& R) {
+  Vec3 e;
 
-    for (int i = 0; i < 3; i++)
-        r.m[i][3] = -(r.m[i][0]*m[0][3] + r.m[i][1]*m[1][3] + r.m[i][2]*m[2][3]);
+  if (fabs(R.m[0][2]) < 1.0f) {
+    e.y = asin(R.m[0][2]);
+    e.x = atan2(-R.m[1][2], R.m[2][2]);
+    e.z = atan2(-R.m[0][1], R.m[0][0]);
+  } else {
+    // Gimbal lock
+    e.y = (R.m[0][2] > 0) ? M_PI / 2 : -M_PI / 2;
+    e.x = atan2(R.m[1][0], R.m[1][1]);
+    e.z = 0.0f;
+  }
 
-    return r;
+  return e;
 }
 
-// Simple print function definition for debugging
-void Matrix4x4::print() {
-    Serial.println("Matrix 4x4:");
-    for (int i = 0; i < MAT; i++) {
-        Serial.printf("| %10.4f %10.4f %10.4f %10.4f |\n", m[i][0], m[i][1], m[i][2], m[i][3]);
+// =====================
+// Matrix helpers
+// =====================
+Mat3 KinematicSolver::mat3Mul(const Mat3& A, const Mat3& B) {
+  Mat3 R = {};
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      for (int k = 0; k < 3; k++) {
+        R.m[i][j] += A.m[i][k] * B.m[k][j];
+      }
     }
+  }
+  return R;
 }
 
-
-// ===================== Rotation Helpers Definitions =====================
-// Note: These are NOT part of the class, so they don't need the KinematicSolver:: prefix.
-
-void eulerXYZ(double rx, double ry, double rz, double R[3][3]) {
-    double cx = cos(rx), sx = sin(rx);
-    double cy = cos(ry), sy = sin(ry);
-    double cz = cos(rz), sz = sin(rz);
-
-    R[0][0] = cy*cz;    R[0][1] = -cy*sz;  R[0][2] = sy;
-    R[1][0] = cx*sz + sx*sy*cz;
-    R[1][1] = cx*cz - sx*sy*sz;
-    R[1][2] = -sx*cy;
-    R[2][0] = sx*sz - cx*sy*cz;
-    R[2][1] = sx*cz + cx*sy*sz;
-    R[2][2] = cx*cy;
-}
-
-void rotToEulerXYZ(double R[3][3], double e[3]) {
-    e[1] = asin(R[0][2]);
-    e[0] = atan2(-R[1][2], R[2][2]);
-    e[2] = atan2(-R[0][1], R[0][0]);
-}
-
-
-// ===================== Kinematic Solver Definitions =====================
-
-// Constructor Definition
-KinematicSolver::KinematicSolver(double *_a, double *_d, double *_alpha, double *_theta) {
-    for (int i = 0; i < DOF; i++) {
-        a[i] = _a[i];
-        d[i] = _d[i];
-        alpha[i] = _alpha[i];
-        theta[i] = _theta[i];
+Mat3 KinematicSolver::mat3Transpose(const Mat3& A) {
+  Mat3 R;
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      R.m[i][j] = A.m[j][i];
     }
+  }
+  return R;
 }
 
-// dh (Denavit-Hartenberg) Definition
-Matrix4x4 KinematicSolver::dh(int i, double *qDeg) {
-    Matrix4x4 T;
-    double t = theta[i] + qDeg[i] * DEG_TO_RAD;
-    double ct = cos(t), st = sin(t);
-    double ca = cos(alpha[i]), sa = sin(alpha[i]);
+// =====================
+// DH rotation only
+// =====================
+Mat3 KinematicSolver::DHRotation(int i, float jointAngleDeg) {
+  float th = theta0[i] + DEG2RAD(jointAngleDeg);
+  float ca = cos(alpha[i]), sa = sin(alpha[i]);
+  float ct = cos(th), st = sin(th);
 
-    T.m[0][0] = ct;  T.m[0][1] = -st*ca;  T.m[0][2] = st*sa;  T.m[0][3] = a[i]*ct;
-    T.m[1][0] = st;  T.m[1][1] = ct*ca;   T.m[1][2] = -ct*sa; T.m[1][3] = a[i]*st;
-    T.m[2][0] = 0;   T.m[2][1] = sa;      T.m[2][2] = ca;     T.m[2][3] = d[i];
-    return T;
+  Mat3 R;
+  R.m[0][0] = ct;
+  R.m[0][1] = -st * ca;
+  R.m[0][2] = st * sa;
+
+  R.m[1][0] = st;
+  R.m[1][1] = ct * ca;
+  R.m[1][2] = -ct * sa;
+
+  R.m[2][0] = 0.0f;
+  R.m[2][1] = sa;
+  R.m[2][2] = ca;
+
+  return R;
 }
 
-// FK (Forward Kinematics) Definition
-Matrix4x4 KinematicSolver::FK(double *qDeg, double *tcpPose) {
-    Matrix4x4 T;
-    for (int i = 0; i < DOF; i++) T = T * dh(i, qDeg);
+// =====================
+// Inverse Kinematics
+// =====================
+void KinematicSolver::SolveIK(const float tcpPose[6],
+                              bool elbowUp,
+                              float outAnglesDeg[6]) {
+  float px = tcpPose[0];
+  float py = tcpPose[1];
+  float pz = tcpPose[2];
 
-    Matrix4x4 TTCP;
-    double R[3][3];
-    eulerXYZ(tcpPose[3]*DEG_TO_RAD, tcpPose[4]*DEG_TO_RAD, tcpPose[5]*DEG_TO_RAD, R);
-    for (int i = 0; i < 3; i++)
-        for (int j = 0; j < 3; j++)
-            TTCP.m[i][j] = R[i][j];
-    TTCP.m[0][3] = tcpPose[0];
-    TTCP.m[1][3] = tcpPose[1];
-    TTCP.m[2][3] = tcpPose[2];
+  float angRad[6] = {0};
 
-    return T * TTCP;
+  // ---- Joint 1 ----
+  angRad[0] = atan2(py, px);
+
+  float pxRot = sqrt(px * px + py * py);
+  if (fabs(angRad[0]) > M_PI / 2) pxRot = -pxRot;
+
+  float pzLocal = pz - d[0];
+
+  // ---- Joint 3 ----
+  float c3 = (a[1]*a[1] + d[3]*d[3]
+             - pxRot*pxRot - pzLocal*pzLocal)
+             / (2.0f * a[1] * d[3]);
+
+  if (c3 > 1.0f) c3 = 1.0f;
+  if (c3 < -1.0f) c3 = -1.0f;
+
+  float j3abs = M_PI - acos(c3);
+
+  // ---- Joint 2 & 3 ----
+  if (elbowUp) {
+    angRad[2] = -j3abs;
+    angRad[1] = atan2(pzLocal, pxRot)
+              + atan2(d[3]*sin(j3abs),
+                      a[1] + d[3]*cos(j3abs));
+  } else {
+    angRad[2] = j3abs;
+    angRad[1] = atan2(pzLocal, pxRot)
+              - atan2(d[3]*sin(j3abs),
+                      a[1] + d[3]*cos(j3abs));
+  }
+
+  // ---- TCP rotation (extrinsic xyz) ----
+  Mat3 R_base_flange =
+    eulerXYZExtrinsicToMat(
+      DEG2RAD(tcpPose[3]),
+      DEG2RAD(tcpPose[4]),
+      DEG2RAD(tcpPose[5])
+    );
+
+
+
+  // ---- FK rotation up to joint 3 ----
+  Mat3 R03;
+  bool first = true;
+
+  for (int i = 0; i < 3; i++) {
+    Mat3 Ri = DHRotation(i, RAD2DEG(angRad[i]));
+    R03 = first ? Ri : mat3Mul(R03, Ri);
+    first = false;
+  }
+  Serial.println("R03-----");
+  printMat3(R03);
+
+  Mat3 R30 = mat3Transpose(R03);
+  Serial.println("R30-----");
+  printMat3(R30);
+
+  Mat3 R36 = mat3Mul(R30, R_base_flange);
+  Serial.println("R36-----");
+  printMat3(R36);
+
+  // ---- Wrist joints (intrinsic XYZ) ----
+  Vec3 wrist = matToEulerXYZIntrinsic(R36);
+
+  angRad[3] = wrist.x;
+  angRad[4] = wrist.y;
+  angRad[5] = wrist.z;
+
+  for (int i = 0; i < 6; i++) {
+    outAnglesDeg[i] = RAD2DEG(angRad[i]);
+  }
 }
 
-// IK (Inverse Kinematics) Definition
-void KinematicSolver::IK(double *pose, bool elbowUp, double *qDeg) {
-    // 
-    
-    // Note: The structure of your IK solver is highly specific 
-    // to your robot's Denavit-Hartenberg (DH) parameters.
-    
-    double px = pose[0], py = pose[1], pz = pose[2];
 
-    double q[DOF] = {0};
-    q[0] = atan2(py, px);
-    double r = sqrt(px*px + py*py);
-    double z = pz - d[0];
-
-    // Assuming the specific structure of the first 3 joints (like a 3-DOF RRR manipulator)
-    double L1 = a[1], L2 = d[3];
-    double D = (r*r + z*z - L1*L1 - L2*L2)/(2*L1*L2);
-    D = constrain(D, -1, 1);
-
-    double q3 = acos(D);
-    if (elbowUp) q3 = -q3;
-
-    double q2 = atan2(z, r) - atan2(L2*sin(q3), L1 + L2*cos(q3));
-
-    q[1] = q2; q[2] = q3;
-
-    // Remaining joints (4, 5, 6) likely determined by wrist orientation
-    double Rbf[3][3];
-    eulerXYZ(pose[3]*DEG_TO_RAD, pose[4]*DEG_TO_RAD, pose[5]*DEG_TO_RAD, Rbf);
-
-    double e[3];
-    rotToEulerXYZ(Rbf, e);
-    q[3] = e[0]; q[4] = e[1]; q[5] = e[2];
-
-    // Convert radians back to degrees for the output array
-    for (int i = 0; i < DOF; i++) qDeg[i] = q[i] * RAD_TO_DEG;
+void KinematicSolver:: printMat3(const Mat3& R) {
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      Serial.print(R.m[i][j], 6);  // 6 decimal places
+      Serial.print("\t");
+    }
+    Serial.println();
+  }
 }
