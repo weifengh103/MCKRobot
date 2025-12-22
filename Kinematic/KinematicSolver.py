@@ -150,15 +150,18 @@ class KinematicSolver:
         # get world  (extrinsic) rotations euler angle of flage
         rmBaseToFlange = Rotation.from_euler('xyz', [rX, rY, rZ], degrees=False).as_matrix()
         angelsDeg = np.degrees(angelsRad)
- 
+        angelsDeg = np.degrees(angelsRad)
 
         tmJointJoint = self.updateAllTJointJointTrans(angelsDeg)
         tmBaseJioint = self.updateAllTBaseJointTrans(tmJointJoint)
-
-        rmBaseToLink3End = tmBaseJioint[5][:3, :3]
-        rmLink3ToBaseEnd = np.linalg.inv(rmBaseToLink3End) 
         
-        rbLink3EndToFlange = np.matmul(rmLink3ToBaseEnd, rmBaseToFlange)
+        # get body centred (intrinsic) rotations euler angle for j4, j5, j6
+
+        # get rotation matrix from link3 Sphere end, where j4,5,6 all equal to 0, to flage
+        rmBaseToLink3SphereEnd = tmBaseJioint[5][:3, :3]
+        rmLink3SphereEndToBase = np.linalg.inv(rmBaseToLink3SphereEnd) 
+        
+        rbLink3EndToFlange = np.matmul(rmLink3SphereEndToBase, rmBaseToFlange)
         
         r = Rotation.from_matrix(rbLink3EndToFlange)
 
