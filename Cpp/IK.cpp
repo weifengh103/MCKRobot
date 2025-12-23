@@ -1,12 +1,32 @@
-#include <Arduino.h>
-#include <math.h>
-#include <string.h>
+#include <iostream>
+#include <cmath>
+#include <cstring>
+#include <iomanip>
 
+#include <math.h>
 #define DEG_TO_RAD (M_PI / 180.0)
 #define RAD_TO_DEG (180.0 / M_PI)
 
+template <size_t R, size_t C>
+void printMatrix(const double (&M)[R][C], const char* name = nullptr) {
+  static_assert((R == 3 && C == 3) || (R == 4 && C == 4),
+                "printMatrix only supports 3x3 or 4x4 matrices");
+
+  if (name)
+    std::cout << name << " =\n";
+
+  for (size_t i = 0; i < R; i++) {
+    for (size_t j = 0; j < C; j++) {
+      std::cout << std::setw(10)
+                << std::fixed << std::setprecision(4)
+                << M[i][j] << " ";
+    }
+    std::cout << "\n";
+  }
+  std::cout << std::endl;
+}
 /* =========================================================
-   Rotation Utilities (REPLACES scipy.spatial.transform.Rotation)
+   Rotation utilities (replaces scipy Rotation)
 ========================================================= */
 
 // Extrinsic xyz
@@ -43,7 +63,7 @@ void rotationMatrixToIntrinsicXYZ(const double R[3][3],
 }
 
 /* =========================================================
-   4x4 Matrix Helpers
+   4x4 matrix helpers
 ========================================================= */
 
 void matMul4(const double A[4][4], const double B[4][4], double C[4][4]) {
@@ -55,12 +75,52 @@ void matMul4(const double A[4][4], const double B[4][4], double C[4][4]) {
     }
 }
 
+void matMul3(const double A[3][3], const double B[3][3], double C[3][3]) {
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++) {
+      C[i][j] = 0;
+      for (int k = 0; k < 3; k++)
+        C[i][j] += A[i][k] * B[k][j];
+    }
+}
+
 void matCopy4(const double A[4][4], double B[4][4]) {
   memcpy(B, A, sizeof(double) * 16);
 }
 
+
+
+bool invert3x3(const double m[3][3], double invOut[3][3])
+{
+    float det =
+        m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+        m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+        m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+
+    if (fabs(det) < 1e-6f) {
+        return false; // Singular matrix
+    }
+
+    float invDet = 1.0f / det;
+
+    invOut[0][0] =  (m[1][1] * m[2][2] - m[1][2] * m[2][1]) * invDet;
+    invOut[0][1] = -(m[0][1] * m[2][2] - m[0][2] * m[2][1]) * invDet;
+    invOut[0][2] =  (m[0][1] * m[1][2] - m[0][2] * m[1][1]) * invDet;
+
+    invOut[1][0] = -(m[1][0] * m[2][2] - m[1][2] * m[2][0]) * invDet;
+    invOut[1][1] =  (m[0][0] * m[2][2] - m[0][2] * m[2][0]) * invDet;
+    invOut[1][2] = -(m[0][0] * m[1][2] - m[0][2] * m[1][0]) * invDet;
+
+    invOut[2][0] =  (m[1][0] * m[2][1] - m[1][1] * m[2][0]) * invDet;
+    invOut[2][1] = -(m[0][0] * m[2][1] - m[0][1] * m[2][0]) * invDet;
+    invOut[2][2] =  (m[0][0] * m[1][1] - m[0][1] * m[1][0]) * invDet;
+
+    return true;
+}
+
+
 /* =========================================================
-   KinematicSolver (Python structure preserved)
+   KinematicSolver (structure preserved)
 ========================================================= */
 
 class KinematicSolver {
@@ -74,7 +134,7 @@ public:
     memcpy(thetas, _thetas, sizeof(thetas));
   }
 
-  /* ================= FK Section ================= */
+  /* ---------- FK section ---------- */
 
   void getDHTransMatrix(int i, const double angelDeg[6], double T[4][4]) {
     double newTheta = thetas[i] + angelDeg[i] * DEG_TO_RAD;
@@ -87,32 +147,39 @@ public:
     T[3][0] = 0;    T[3][1] = 0;         T[3][2] = 0;        T[3][3] = 1;
   }
 
-  void updateAllTJointJointTrans(const double angelDeg[6], double TJJ[6][4][4]) {
+  void updateAllTJointJointTrans(const double angelDeg[6],
+                                 double TJJ[6][4][4]) {
     for (int i = 0; i < 6; i++)
+    {
       getDHTransMatrix(i, angelDeg, TJJ[i]);
+      printMatrix(TJJ[i], "TJJ");
+    }
   }
 
-  void updateAllTBaseJointTrans(double TJJ[6][4][4], double TBJ[6][4][4]) {
+  void updateAllTBaseJointTrans(double TJJ[6][4][4],
+                                double TBJ[6][4][4]) {
     for (int i = 0; i < 6; i++) {
       if (i == 0)
         matCopy4(TJJ[i], TBJ[i]);
       else
         matMul4(TBJ[i - 1], TJJ[i], TBJ[i]);
+
+      printMatrix(TBJ[i], "TBJ");
     }
   }
 
-  /* ================= Pose / Transform ================= */
+  /* ---------- Pose / Transform ---------- */
 
-  void PoseToTransformationMatrix(const double pose[6], bool isExtrinsic, double T[4][4]) {
+  void PoseToTransformationMatrix(const double pose[6],
+                                  bool isExtrinsic,
+                                  double T[4][4]) {
     double R[3][3];
-
-    if (isExtrinsic)
-      eulerExtrinsicXYZ(
-        pose[3] * DEG_TO_RAD,
-        pose[4] * DEG_TO_RAD,
-        pose[5] * DEG_TO_RAD,
-        R
-      );
+    eulerExtrinsicXYZ(
+      pose[3] * DEG_TO_RAD,
+      pose[4] * DEG_TO_RAD,
+      pose[5] * DEG_TO_RAD,
+      R
+    );
 
     memset(T, 0, sizeof(double) * 16);
     for (int i = 0; i < 3; i++)
@@ -125,40 +192,27 @@ public:
     T[3][3] = 1;
   }
 
-  void TransformationMatrixToPose(double T[4][4], bool isExtrinsic, double pose[6]) {
+  void TransformationMatrixToPose(double T[4][4],
+                                  bool isExtrinsic,
+                                  double pose[6]) {
     pose[0] = T[0][3];
     pose[1] = T[1][3];
     pose[2] = T[2][3];
 
-    // Extract 3x3 rotation matrix
     double R[3][3];
     for (int i = 0; i < 3; i++)
       for (int j = 0; j < 3; j++)
         R[i][j] = T[i][j];
 
     double rx, ry, rz;
-
-    // Your Python logic:
-    // if isExtrinsic:
-    //   Rotation.from_matrix(R).as_euler('xyz')
-    // else:
-    //   Rotation.from_matrix(R).as_euler('XYZ')
-
-    if (isExtrinsic) {
-      // Extrinsic xyz == intrinsic ZYX (inverse sequence)
-      // Optional: implement later if you need it
-      rotationMatrixToIntrinsicXYZ(R, rx, ry, rz);
-    } else {
-      // Intrinsic XYZ (matches your IK wrist extraction)
-      rotationMatrixToIntrinsicXYZ(R, rx, ry, rz);
-    }
+    rotationMatrixToIntrinsicXYZ(R, rx, ry, rz);
 
     pose[3] = rx * RAD_TO_DEG;
     pose[4] = ry * RAD_TO_DEG;
     pose[5] = rz * RAD_TO_DEG;
   }
 
-  /* ================= IK Section ================= */
+  /* ---------- IK ---------- */
 
   void SolveIK(const double TCPPose[6], bool elbowUp, double outDeg[6]) {
     double angelsRad[6] = {0};
@@ -181,11 +235,13 @@ public:
     if (elbowUp) {
       angelsRad[2] = -j3Abs;
       angelsRad[1] = atan2(pzLocal, pxRotated) +
-                     atan2(d[3] * sin(j3Abs), a[1] + d[3] * cos(j3Abs));
+                     atan2(d[3] * sin(j3Abs),
+                           a[1] + d[3] * cos(j3Abs));
     } else {
       angelsRad[2] = j3Abs;
       angelsRad[1] = atan2(pzLocal, pxRotated) -
-                     atan2(d[3] * sin(j3Abs), a[1] + d[3] * cos(j3Abs));
+                     atan2(d[3] * sin(j3Abs),
+                           a[1] + d[3] * cos(j3Abs));
     }
 
     double rmBaseToFlange[3][3];
@@ -204,25 +260,31 @@ public:
     updateAllTJointJointTrans(angelsDeg, TJJ);
     updateAllTBaseJointTrans(TJJ, TBJ);
 
-    double R03[3][3];
+    printMatrix(TBJ[5], "TBJ5");
+    double R03SphereEnd[3][3];
     for (int r = 0; r < 3; r++)
       for (int c = 0; c < 3; c++)
-        R03[r][c] = TBJ[5][c][r];
+        R03SphereEnd[r][c] = TBJ[5][r][c];
 
-    double R36[3][3];
-    for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++) {
-        R36[i][j] = 0;
-        for (int k = 0; k < 3; k++)
-          R36[i][j] += R03[i][k] * rmBaseToFlange[k][j];
-      }
+    printMatrix(R03SphereEnd, "R03SphereEnd");
+
+    double RSphereEnd03[3][3];
+     
+    invert3x3(R03SphereEnd, RSphereEnd03);
+
+    printMatrix(RSphereEnd03, "RSphereEnd03");
+
+    double rbLink3EndToFlange [3][3];
+    matMul3(RSphereEnd03, rmBaseToFlange, rbLink3EndToFlange);
 
     rotationMatrixToIntrinsicXYZ(
-      R36,
+      RSphereEnd03,
       angelsRad[3],
       angelsRad[4],
       angelsRad[5]
     );
+
+
 
     for (int i = 0; i < 6; i++)
       outDeg[i] = angelsRad[i] * RAD_TO_DEG;
@@ -230,29 +292,26 @@ public:
 };
 
 /* =========================================================
-   Example (loop-callable)
+   Console debug main()
 ========================================================= */
 
-double a[6]     = {0, 50, 0, 0, 0, 0};
-double d[6]     = {50, 0, 0, 50, 0, 0};
-double alphas[6]= {M_PI/2, 0, M_PI/2, -M_PI/2, M_PI/2, 0};
-double thetas[6]= {0, 0, 0, 0, 0, 0};
+int main() {
+  double a[6]      = {0, 50, 0, 0, 0, 0};
+  double d[6]      = {50, 0, 0, 50, 0, 0};
+  double alphas[6] = {M_PI/2, 0, M_PI/2, M_PI/2, M_PI/2, 0};
+  double thetas[6] = {0, 0, M_PI/2, -M_PI, M_PI/2, 0};
 
-KinematicSolver solver(a, d, alphas, thetas);
+  KinematicSolver solver(a, d, alphas, thetas);
 
-void setup() {
-  Serial.begin(115200);
-}
-
-void loop() {
-  double tcp[6] = {300, 0, 200, 0, 90, 0};
+  double tcp[6] = {50,10,50,180,0,0};
+  // double tcp[6] = {50,0,50,180,0,0};
   double joints[6];
 
   solver.SolveIK(tcp, true, joints);
 
-  Serial.println("IK:");
+  std::cout << "IK solution:\n";
   for (int i = 0; i < 6; i++)
-    Serial.println(joints[i]);
+    std::cout << "J" << i + 1 << ": " << joints[i] << " deg\n";
 
-  delay(1000);
+  return 0;
 }
