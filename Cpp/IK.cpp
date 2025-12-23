@@ -62,6 +62,32 @@ void rotationMatrixToIntrinsicXYZ(const double R[3][3],
   }
 }
 
+//Extrinsic XYZ
+void rotationMatrixToExtrinsicXYZ(const double R[3][3],
+                                  double &rx, double &ry, double &rz)
+{
+    // sy = sin(ry)
+    double sy = R[0][2];
+
+    // Clamp for numerical safety
+    if (sy >  1.0) sy =  1.0;
+    if (sy < -1.0) sy = -1.0;
+
+    ry = asin(sy);
+
+    // cos(ry)
+    double cy = cos(ry);
+
+    if (fabs(cy) > 1e-6) {
+        rx = atan2(-R[1][2], R[2][2]);
+        rz = atan2(-R[0][1], R[0][0]);
+    } else {
+        // Gimbal lock (ry ≈ ±90°)
+        rx = atan2(R[2][1], R[1][1]);
+        rz = 0.0;
+    }
+}
+
 /* =========================================================
    4x4 matrix helpers
 ========================================================= */
@@ -268,17 +294,18 @@ public:
 
     printMatrix(R03SphereEnd, "R03SphereEnd");
 
-    double RSphereEnd03[3][3];
+    double rmLink3SphereEndToBase[3][3];
      
-    invert3x3(R03SphereEnd, RSphereEnd03);
+    invert3x3(R03SphereEnd, rmLink3SphereEndToBase);
 
-    printMatrix(RSphereEnd03, "RSphereEnd03");
+    printMatrix(rmLink3SphereEndToBase, "rmLink3SphereEndToBase");
 
     double rbLink3EndToFlange [3][3];
-    matMul3(RSphereEnd03, rmBaseToFlange, rbLink3EndToFlange);
+    matMul3(rmLink3SphereEndToBase, rmBaseToFlange, rbLink3EndToFlange);
 
-    rotationMatrixToIntrinsicXYZ(
-      RSphereEnd03,
+    printMatrix(rbLink3EndToFlange, "rbLink3EndToFlange");
+    rotationMatrixToExtrinsicXYZ(
+      rbLink3EndToFlange,
       angelsRad[3],
       angelsRad[4],
       angelsRad[5]
@@ -303,7 +330,7 @@ int main() {
 
   KinematicSolver solver(a, d, alphas, thetas);
 
-  double tcp[6] = {50,10,50,180,0,0};
+  double tcp[6] = {50,10,50,90,0,0};
   // double tcp[6] = {50,0,50,180,0,0};
   double joints[6];
 

@@ -48,7 +48,7 @@ class MCKRobot:
     _initialTCPPose = [100,0,50,0,0,0]
 
     # target robot position
-    _targetTCPPose = [50,10,50,180,0,0]
+    _targetTCPPose = [50,10,50,90,0,0]
     def __init__(self):
        
         # get tmInitBaseJoint
