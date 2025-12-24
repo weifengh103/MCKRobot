@@ -1,65 +1,38 @@
 #ifndef KINEMATIC_SOLVER_H
 #define KINEMATIC_SOLVER_H
 
+#include <Arduino.h>
 #include <math.h>
 
-// =====================
-// Macros
-// =====================
-#define DEG2RAD(x) ((x) * M_PI / 180.0f)
-#define RAD2DEG(x) ((x) * 180.0f / M_PI)
-
-// =====================
-// Basic math structs
-// =====================
-struct Vec3 {
-  float x;
-  float y;
-  float z;
-};
-
-struct Mat3 {
-  float m[3][3];
-};
-
-// =====================
-// KinematicSolver class
-// =====================
 class KinematicSolver {
 public:
-  // DH parameters
-  float a[6];
-  float d[6];
-  float alpha[6];
-  float theta0[6];
+    // Constructor to initialize DH parameters
+    KinematicSolver(const double _a[6], const double _d[6], const double _alphas[6], const double _thetas[6]);
 
-  // Constructor
-  KinematicSolver(const float* a_,
-                  const float* d_,
-                  const float* alpha_,
-                  const float* theta0_);
-
-  // -------- IK --------
-  // tcpPose = {x, y, z, rx, ry, rz}  (deg for rotations)
-  // elbowUp = true / false
-  // outAnglesDeg = 6 joint angles in degrees
-  void SolveIK(const float tcpPose[6],
-               bool elbowUp,
-               float outAnglesDeg[6]);
+    // The only public operational function
+    void solveIK(const double TCPPose[6], bool elbowUp, double outDeg[6]);
 
 private:
-  // -------- Rotation helpers --------
-  Mat3 eulerXYZExtrinsicToMat(float rx, float ry, float rz);
-  Vec3 matToEulerXYZIntrinsic(const Mat3& R);
+    double a[6], d[6], alphas[6], thetas[6];
 
-  // -------- Matrix helpers --------
-  Mat3 mat3Mul(const Mat3& A, const Mat3& B);
-  Mat3 mat3Transpose(const Mat3& A);
+    // Internal Math Utilities
+    void eulerExtrinsicXYZ(double rx, double ry, double rz, double R[3][3]);
+    void rotationMatrixToIntrinsicXYZ(const double R[3][3], double &rx, double &ry, double &rz);
+    void rotationMatrixToExtrinsicXYZ(const double R[3][3], double &rx, double &ry, double &rz);
+    
+    void matMul4(const double A[4][4], const double B[4][4], double C[4][4]);
+    void matMul3(const double A[3][3], const double B[3][3], double C[3][3]);
+    void matCopy4(const double A[4][4], double B[4][4]);
+    bool invert3x3(const double m[3][3], double invOut[3][3]);
 
-  // -------- DH --------
-  Mat3 DHRotation(int jointIdx, float jointAngleDeg);
-
-  void printMat3(const Mat3& R);
+    // Internal Kinematic Helpers
+    void getDHTransMatrix(int i, const double angelDeg[6], double T[4][4]);
+    void updateAllTJointJointTrans(const double angelDeg[6], double TJJ[6][4][4]);
+    void updateAllTBaseJointTrans(double TJJ[6][4][4], double TBJ[6][4][4]);
+    
+    // Debugging
+    void printMatrix3x3(const double M[3][3], const char* name);
+    void printMatrix4x4(const double M[4][4], const char* name);
 };
 
-#endif  // KINEMATIC_SOLVER_H
+#endif

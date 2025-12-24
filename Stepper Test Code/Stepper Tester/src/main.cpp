@@ -1,258 +1,49 @@
-#include <Arduino.h>
-#include <math.h>
-#include <string.h>
+#include "KinematicSolver.h"
 
-#define DEG_TO_RAD (M_PI / 180.0)
-#define RAD_TO_DEG (180.0 / M_PI)
+// Example DH Parameters
+double a[] = {0, 50, 0, 0, 0, 0};
+double d[] = {50,0,0,50,0,0};
+double alphas[] = {M_PI/2, 0, M_PI/2, M_PI/2, M_PI/2, 0};
+double thetas[] = {0, 0, M_PI/2, -M_PI, M_PI/2, 0};
 
-/* =========================================================
-   Rotation Utilities (REPLACES scipy.spatial.transform.Rotation)
-========================================================= */
-
-// Extrinsic xyz
-void eulerExtrinsicXYZ(double rx, double ry, double rz, double R[3][3]) {
-  double cx = cos(rx), sx = sin(rx);
-  double cy = cos(ry), sy = sin(ry);
-  double cz = cos(rz), sz = sin(rz);
-
-  R[0][0] = cy * cz;
-  R[0][1] = cz * sx * sy - cx * sz;
-  R[0][2] = sx * sz + cx * cz * sy;
-
-  R[1][0] = cy * sz;
-  R[1][1] = cx * cz + sx * sy * sz;
-  R[1][2] = cx * sy * sz - cz * sx;
-
-  R[2][0] = -sy;
-  R[2][1] = cy * sx;
-  R[2][2] = cx * cy;
-}
-
-// Intrinsic XYZ
-void rotationMatrixToIntrinsicXYZ(const double R[3][3],
-                                  double &rx, double &ry, double &rz) {
-  ry = asin(-R[2][0]);
-
-  if (fabs(cos(ry)) > 1e-6) {
-    rx = atan2(R[2][1], R[2][2]);
-    rz = atan2(R[1][0], R[0][0]);
-  } else {
-    rx = 0;
-    rz = atan2(-R[0][1], R[1][1]);
-  }
-}
-
-/* =========================================================
-   4x4 Matrix Helpers
-========================================================= */
-
-void matMul4(const double A[4][4], const double B[4][4], double C[4][4]) {
-  for (int i = 0; i < 4; i++)
-    for (int j = 0; j < 4; j++) {
-      C[i][j] = 0;
-      for (int k = 0; k < 4; k++)
-        C[i][j] += A[i][k] * B[k][j];
-    }
-}
-
-void matCopy4(const double A[4][4], double B[4][4]) {
-  memcpy(B, A, sizeof(double) * 16);
-}
-
-/* =========================================================
-   KinematicSolver (Python structure preserved)
-========================================================= */
-
-class KinematicSolver {
-public:
-  double a[6], d[6], alphas[6], thetas[6];
-
-  KinematicSolver(double *_a, double *_d, double *_alphas, double *_thetas) {
-    memcpy(a, _a, sizeof(a));
-    memcpy(d, _d, sizeof(d));
-    memcpy(alphas, _alphas, sizeof(alphas));
-    memcpy(thetas, _thetas, sizeof(thetas));
-  }
-
-  /* ================= FK Section ================= */
-
-  void getDHTransMatrix(int i, const double angelDeg[6], double T[4][4]) {
-    double newTheta = thetas[i] + angelDeg[i] * DEG_TO_RAD;
-    double ct = cos(newTheta), st = sin(newTheta);
-    double ca = cos(alphas[i]), sa = sin(alphas[i]);
-
-    T[0][0] = ct;   T[0][1] = -st * ca;  T[0][2] = st * sa;   T[0][3] = a[i] * ct;
-    T[1][0] = st;   T[1][1] = ct * ca;   T[1][2] = -ct * sa;  T[1][3] = a[i] * st;
-    T[2][0] = 0;    T[2][1] = sa;        T[2][2] = ca;       T[2][3] = d[i];
-    T[3][0] = 0;    T[3][1] = 0;         T[3][2] = 0;        T[3][3] = 1;
-  }
-
-  void updateAllTJointJointTrans(const double angelDeg[6], double TJJ[6][4][4]) {
-    for (int i = 0; i < 6; i++)
-      getDHTransMatrix(i, angelDeg, TJJ[i]);
-  }
-
-  void updateAllTBaseJointTrans(double TJJ[6][4][4], double TBJ[6][4][4]) {
-    for (int i = 0; i < 6; i++) {
-      if (i == 0)
-        matCopy4(TJJ[i], TBJ[i]);
-      else
-        matMul4(TBJ[i - 1], TJJ[i], TBJ[i]);
-    }
-  }
-
-  /* ================= Pose / Transform ================= */
-
-  void PoseToTransformationMatrix(const double pose[6], bool isExtrinsic, double T[4][4]) {
-    double R[3][3];
-
-    if (isExtrinsic)
-      eulerExtrinsicXYZ(
-        pose[3] * DEG_TO_RAD,
-        pose[4] * DEG_TO_RAD,
-        pose[5] * DEG_TO_RAD,
-        R
-      );
-
-    memset(T, 0, sizeof(double) * 16);
-    for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++)
-        T[i][j] = R[i][j];
-
-    T[0][3] = pose[0];
-    T[1][3] = pose[1];
-    T[2][3] = pose[2];
-    T[3][3] = 1;
-  }
-
-  void TransformationMatrixToPose(double T[4][4], bool isExtrinsic, double pose[6]) {
-    pose[0] = T[0][3];
-    pose[1] = T[1][3];
-    pose[2] = T[2][3];
-
-    // Extract 3x3 rotation matrix
-    double R[3][3];
-    for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++)
-        R[i][j] = T[i][j];
-
-    double rx, ry, rz;
-
-    // Your Python logic:
-    // if isExtrinsic:
-    //   Rotation.from_matrix(R).as_euler('xyz')
-    // else:
-    //   Rotation.from_matrix(R).as_euler('XYZ')
-
-    if (isExtrinsic) {
-      // Extrinsic xyz == intrinsic ZYX (inverse sequence)
-      // Optional: implement later if you need it
-      rotationMatrixToIntrinsicXYZ(R, rx, ry, rz);
-    } else {
-      // Intrinsic XYZ (matches your IK wrist extraction)
-      rotationMatrixToIntrinsicXYZ(R, rx, ry, rz);
-    }
-
-    pose[3] = rx * RAD_TO_DEG;
-    pose[4] = ry * RAD_TO_DEG;
-    pose[5] = rz * RAD_TO_DEG;
-  }
-
-  /* ================= IK Section ================= */
-
-  void SolveIK(const double TCPPose[6], bool elbowUp, double outDeg[6]) {
-    double angelsRad[6] = {0};
-
-    double px = TCPPose[0];
-    double py = TCPPose[1];
-    double pz = TCPPose[2];
-
-    angelsRad[0] = atan2(py, px);
-    double pxRotated = hypot(px, py);
-    if (fabs(angelsRad[0]) > M_PI / 2) pxRotated = -pxRotated;
-
-    double pzLocal = pz - d[0];
-
-    double j3Abs = M_PI - acos(
-      (a[1]*a[1] + d[3]*d[3] - pxRotated*pxRotated - pzLocal*pzLocal) /
-      (2 * a[1] * d[3])
-    );
-
-    if (elbowUp) {
-      angelsRad[2] = -j3Abs;
-      angelsRad[1] = atan2(pzLocal, pxRotated) +
-                     atan2(d[3] * sin(j3Abs), a[1] + d[3] * cos(j3Abs));
-    } else {
-      angelsRad[2] = j3Abs;
-      angelsRad[1] = atan2(pzLocal, pxRotated) -
-                     atan2(d[3] * sin(j3Abs), a[1] + d[3] * cos(j3Abs));
-    }
-
-    double rmBaseToFlange[3][3];
-    eulerExtrinsicXYZ(
-      TCPPose[3] * DEG_TO_RAD,
-      TCPPose[4] * DEG_TO_RAD,
-      TCPPose[5] * DEG_TO_RAD,
-      rmBaseToFlange
-    );
-
-    double angelsDeg[6];
-    for (int i = 0; i < 6; i++)
-      angelsDeg[i] = angelsRad[i] * RAD_TO_DEG;
-
-    double TJJ[6][4][4], TBJ[6][4][4];
-    updateAllTJointJointTrans(angelsDeg, TJJ);
-    updateAllTBaseJointTrans(TJJ, TBJ);
-
-    double R03[3][3];
-    for (int r = 0; r < 3; r++)
-      for (int c = 0; c < 3; c++)
-        R03[r][c] = TBJ[5][c][r];
-
-    double R36[3][3];
-    for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++) {
-        R36[i][j] = 0;
-        for (int k = 0; k < 3; k++)
-          R36[i][j] += R03[i][k] * rmBaseToFlange[k][j];
-      }
-
-    rotationMatrixToIntrinsicXYZ(
-      R36,
-      angelsRad[3],
-      angelsRad[4],
-      angelsRad[5]
-    );
-
-    for (int i = 0; i < 6; i++)
-      outDeg[i] = angelsRad[i] * RAD_TO_DEG;
-  }
-};
-
-/* =========================================================
-   Example (loop-callable)
-========================================================= */
-
-double a[6]     = {0, 50, 0, 0, 0, 0};
-double d[6]     = {50, 0, 0, 50, 0, 0};
-double alphas[6]= {M_PI/2, 0, M_PI/2, -M_PI/2, M_PI/2, 0};
-double thetas[6]= {0, 0, 0, 0, 0, 0};
-
-KinematicSolver solver(a, d, alphas, thetas);
+KinematicSolver robot(a, d, alphas, thetas);
 
 void setup() {
   Serial.begin(115200);
+  
+  // Target Pose: X, Y, Z, Rx, Ry, Rz
+//   double targetPose[6] = {50,10,50,90,0,0};
+//   double resultDegrees[6];
+
+//   robot.solveIK(targetPose, true, resultDegrees);
+
+//   Serial.println("IK Solution (Degrees):");
+//   for(int i=0; i<6; i++) {
+//     Serial.printf("Joint %d: %.2f\n", i+1, resultDegrees[i]);
+//   }
+    
+  const int iterations = 1000;
+  double targetPose[6] = {150.0, 5.0, 180.0, 10.0, 0.0, 0.0};
+  double resultDegrees[6];
+
+  Serial.println("Starting benchmark...");
+  
+  int64_t totalStartTime = esp_timer_get_time(); // Native ESP32 microsecond timer
+
+  for (int i = 0; i < iterations; i++) {
+    robot.solveIK(targetPose, true, resultDegrees);
+  }
+
+  int64_t totalEndTime = esp_timer_get_time();
+  
+  float totalDuration = (float)(totalEndTime - totalStartTime);
+  float averageDuration = totalDuration / iterations;
+
+  Serial.println("--- Benchmark Results ---");
+  Serial.printf("Total time for %d runs: %.2f us\n", iterations, totalDuration);
+  Serial.printf("Average time per solveIK: %.2f us\n", averageDuration);
+  Serial.println("-------------------------");
+
 }
 
-void loop() {
-  double tcp[6] = {300, 0, 200, 0, 90, 0};
-  double joints[6];
-
-  solver.SolveIK(tcp, true, joints);
-
-  Serial.println("IK:");
-  for (int i = 0; i < 6; i++)
-    Serial.println(joints[i]);
-
-  delay(1000);
-}
+void loop() {}
