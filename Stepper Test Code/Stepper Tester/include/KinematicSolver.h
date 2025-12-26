@@ -10,7 +10,7 @@ public:
     KinematicSolver(const double _a[6], const double _d[6], const double _alphas[6], const double _thetas[6]);
 
     // The only public operational function
-    void solveIK(const double TCPPose[6], bool elbowUp, double outDeg[6]);
+    bool solveIK(const double TCPPose[6], bool elbowUp, double outDeg[6]);
 
 private:
     double a[6], d[6], alphas[6], thetas[6];

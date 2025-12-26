@@ -132,7 +132,7 @@ void KinematicSolver::updateAllTBaseJointTrans(double TJJ[6][4][4], double TBJ[6
     }
 }
 
-void KinematicSolver::solveIK(const double TCPPose[6], bool elbowUp, double outDeg[6]) {
+bool KinematicSolver::solveIK(const double TCPPose[6], bool elbowUp, double outDeg[6]) {
     double angelsRad[6] = {0};
     double px = TCPPose[0], py = TCPPose[1], pz = TCPPose[2];
 
@@ -175,4 +175,6 @@ void KinematicSolver::solveIK(const double TCPPose[6], bool elbowUp, double outD
     rotationMatrixToExtrinsicXYZ(rbLink3EndToFlange, angelsRad[3], angelsRad[4], angelsRad[5]);
 
     for (int i = 0; i < 6; i++) outDeg[i] = angelsRad[i] * K_RAD_TO_DEG;
+
+    return true;
 }
