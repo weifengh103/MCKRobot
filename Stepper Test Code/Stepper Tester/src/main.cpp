@@ -16,12 +16,12 @@ double thetas[] = {0, 0, M_PI/2, -M_PI, M_PI/2, 0};
 KinematicSolver robot(a, d, alphas, thetas);
 
 /* ---------------- Stepper wiring ---------------- */
-const int STEP_PIN[NUM_AXES] = {2, 4, 5, 18, 19, 21};
-const int DIR_PIN [NUM_AXES] = {15,16,17,22,23,25};
+const int STEP_PIN[NUM_AXES] = {12, 14, 15, 16, 17, 21};
+const int DIR_PIN [NUM_AXES] = {13,22,23,24,25,26};
 
 /* ---------------- Stepper mechanics ---------------- */
-const int   STEPS_PER_REV = 200;
-const int   MICROSTEP     = 16;
+const int   STEPS_PER_REV = 400;
+const int   MICROSTEP     = 1;
 const float GEAR_RATIO[NUM_AXES] = {1,1,1,1,1,1};
 
 float STEPS_PER_RAD[NUM_AXES];
@@ -130,89 +130,116 @@ void setup() {
   Serial.println("6-DOF Cartesian DDA planner w/ rotation");
 }
 
+
+
 /* ============================================================
    MAIN LOOP
    ============================================================ */
 
 void loop() {
 
-  /* -------- Cartesian endpoints -------- */
-  double P0[] = {0.30, 0.00, 0.30, 180, 0, 0};
-  double P1[] = {0.40, 0.20, 0.25, 180, 0, 90};
+  /*Stepper test*/
 
-  /* ---- Orientation in radians ---- */
-  double R0[3] = {
-    P0[3], P0[4], P0[5]
-  };
-  double R1[3] = {
-    P1[3], P1[4], P1[5]
-  };
-
-  /* ---- Path direction ---- */
-  float dx = P1[0] - P0[0];
-  float dy = P1[1] - P0[1];
-  float dz = P1[2] - P0[2];
-  float D  = sqrt(dx*dx + dy*dy + dz*dz);
-
-  /* ---- Unit vector along path ---- */
-  float ux = dx / D;
-  float uy = dy / D;
-  float uz = dz / D;
-
-  Trapezoid tr = computeTrapezoid(D, V_MAX, A_MAX);
-
-  /* ---- Main control loop ---- */
-  double q[NUM_AXES], prevQ[NUM_AXES];
-
-  robot.solveIK(P0, true, prevQ);
-  for (int i = 0; i < NUM_AXES; i++)
-    prevStepTarget[i] = lround(prevQ[i] * STEPS_PER_RAD[i]);
-
-  uint32_t tStart = micros();
-  uint32_t nextSample = tStart;
-
-  while (true) {
-    if (micros() < nextSample) continue;
-    nextSample += Ts_us;
-
-    float t = (micros() - tStart) * 1e-6f;
+  // stepAcc[0] = 800.0f; // 2 revolutions
+  // emitSteps(stepAcc[0], STEP_PIN[0], DIR_PIN[0]);
+  
+  
+   digitalWrite(DIR_PIN[0], HIGH); // Set direction
+  digitalWrite(STEP_PIN[0], HIGH); // Pulse HIGH (e.g., 1 microsecond)
+  delayMicroseconds(5);
+  digitalWrite(STEP_PIN[0], LOW);  // Pulse LOW (e.g., 1 microsecond)
+  delayMicroseconds(5);
+  // delayMicroseconds(1000); 
+  
+  // Serial.println("Move complete");
 
 
-    if (t > tr.T) 
-      t = tr.T;
 
-    float s = currDist_of_t(tr, t);
-    double alpha = s / D;
 
-    /* ---- Interpolated 6D pose ---- */
-    double P[6];
-    P[0] = P0[0] + ux * s;
-    P[1] = P0[1] + uy * s;
-    P[2] = P0[2] + uz * s;
 
-    P[3] = R0[0] + alpha * (R1[0] - R0[0]);
-    P[4] = R0[1] + alpha * (R1[1] - R0[1]);
-    P[5] = R0[2] + alpha * (R1[2] - R0[2]);
+  
+ 
+  
+  
 
-    if (!robot.solveIK(P, true, q)) break;
 
-    for (int i = 0; i < NUM_AXES; i++) {
-      long targetSteps = lround(q[i] * STEPS_PER_RAD[i]);
-      stepAcc[i] += targetSteps - prevStepTarget[i];
-      prevStepTarget[i] = targetSteps;
-    }
+  // /* -------- Cartesian endpoints -------- */
+  // double P0[] = {0.30, 0.00, 0.30, 180, 0, 0};
+  // double P1[] = {0.40, 0.20, 0.25, 180, 0, 90};
 
-    uint32_t emitStart = micros();
-    while (micros() - emitStart < Ts_us) {
-      for (int i = 0; i < NUM_AXES; i++)
-        emitSteps(stepAcc[i], STEP_PIN[i], DIR_PIN[i]);
-    }
+  // /* ---- Orientation in radians ---- */
+  // double R0[3] = {
+  //   P0[3], P0[4], P0[5]
+  // };
+  // double R1[3] = {
+  //   P1[3], P1[4], P1[5]
+  // };
 
-    if (t >= tr.T) 
-      { Serial.println("Move complete");}
-    continue;
-  }
+  // /* ---- Path direction ---- */
+  // float dx = P1[0] - P0[0];
+  // float dy = P1[1] - P0[1];
+  // float dz = P1[2] - P0[2];
+  // float D  = sqrt(dx*dx + dy*dy + dz*dz);
+
+  // /* ---- Unit vector along path ---- */
+  // float ux = dx / D;
+  // float uy = dy / D;
+  // float uz = dz / D;
+
+  // Trapezoid tr = computeTrapezoid(D, V_MAX, A_MAX);
+
+  // /* ---- Main control loop ---- */
+  // double q[NUM_AXES], prevQ[NUM_AXES];
+
+  // robot.solveIK(P0, true, prevQ);
+  // for (int i = 0; i < NUM_AXES; i++)
+  //   prevStepTarget[i] = lround(prevQ[i] * STEPS_PER_RAD[i]);
+
+  // uint32_t tStart = micros();
+  // uint32_t nextSample = tStart;
+
+  // while (true) {
+  //   if (micros() < nextSample) continue;
+  //   nextSample += Ts_us;
+
+  //   float t = (micros() - tStart) * 1e-6f;
+
+
+  //   if (t > tr.T) 
+  //     t = tr.T;
+
+  //   float s = currDist_of_t(tr, t);
+  //   double alpha = s / D;
+
+  //   /* ---- Interpolated 6D pose ---- */
+  //   double P[6];
+  //   P[0] = P0[0] + ux * s;
+  //   P[1] = P0[1] + uy * s;
+  //   P[2] = P0[2] + uz * s;
+
+  //   P[3] = R0[0] + alpha * (R1[0] - R0[0]);
+  //   P[4] = R0[1] + alpha * (R1[1] - R0[1]);
+  //   P[5] = R0[2] + alpha * (R1[2] - R0[2]);
+
+  //   if (!robot.solveIK(P, true, q)) break;
+
+  //   for (int i = 0; i < NUM_AXES; i++) {
+  //     long targetSteps = lround(q[i] * STEPS_PER_RAD[i]);
+  //     stepAcc[i] += targetSteps - prevStepTarget[i];
+  //     prevStepTarget[i] = targetSteps;
+  //   }
+
+  //   uint32_t emitStart = micros();
+  //   while (micros() - emitStart < Ts_us) {
+  //     for (int i = 0; i < NUM_AXES; i++)
+  //       emitSteps(stepAcc[i], STEP_PIN[i], DIR_PIN[i]);
+  //   }
+
+  //   if (t >= tr.T) 
+  //     { Serial.println("Move complete");}
+  //   continue;
+  // }
 
  
-  while (1) delay(1000);
+  // while (1) delay(1000);
 }
